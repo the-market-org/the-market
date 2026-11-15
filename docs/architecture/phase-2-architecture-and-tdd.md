@@ -122,7 +122,7 @@ flowchart LR
 - **Outputs:** proposals, never direct writes. A proposal names the change, the evidence and how to revert it.
 - **What it can change:** only what a workflow or an app skill exposes, such as slot bindings, collection order, reorder suggestions and theme settings. It has no database access.
 - **Autonomy** is per proposal kind: `suggest` (default), `approve` (one click), `auto` (low-risk kinds the merchant opted into).
-- **Model access** sits behind one interface so a store can use a hosted model, a local model or rules only.
+- **Model access** sits behind one interface. The first implementation calls OpenRouter; other providers or a rules-only mode can replace it.
 
 ## 4. Monorepo layout
 
@@ -222,130 +222,11 @@ erDiagram
 
 Solid lines are foreign keys inside one module. Dotted lines are id references across modules.
 
-### Drizzle outlines
+### Prisma schemas
 
-These are outlines for review, not yet compiled. Drizzle is chosen because each module can own its schema file and migrations; **this is my call, not something the owner decided.**
+The owner chose PostgreSQL accessed through Prisma 6.19.3. Each module keeps its own `prisma/schema.prisma`, its own migrations and its own generated client, and connects with `?schema=<module>` so it only sees its own tables. The `schema` connection parameter is documented for Prisma 6; generating one client per module is to be proven in roadmap PR 3.
 
-```ts
-// modules/catalog/src/schema.ts
-import { integer, pgSchema, text, timestamp, uuid } from "drizzle-orm/pg-core";
-
-export const catalog = pgSchema("catalog");
-
-export const products = catalog.table("products", {
-  productId: uuid("product_id").primaryKey().defaultRandom(),
-  handle: text("handle").notNull().unique(),
-  title: text("title").notNull(),
-  description: text("description").notNull().default(""),
-  status: text("status").notNull().default("draft"), // draft | active | archived
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
-
-export const variants = catalog.table("variants", {
-  variantId: uuid("variant_id").primaryKey().defaultRandom(),
-  productId: uuid("product_id").notNull().references(() => products.productId),
-  sku: text("sku").notNull().unique(),
-  title: text("title").notNull(),
-  priceMinor: integer("price_minor").notNull(),
-  currencyCode: text("currency_code").notNull(),
-});
-```
-
-```ts
-// modules/order/src/schema.ts
-export const orders = pgSchema("orders");
-
-export const orderRecords = orders.table("orders", {
-  orderId: uuid("order_id").primaryKey().defaultRandom(),
-  orderNumber: integer("order_number").notNull().unique(),
-  customerId: uuid("customer_id"), // id only: customer lives in another module
-  status: text("status").notNull().default("pending"), // pending | paid | fulfilled | canceled | refunded
-  currencyCode: text("currency_code").notNull(),
-  subtotalMinor: integer("subtotal_minor").notNull(),
-  totalMinor: integer("total_minor").notNull(),
-  paymentProviderId: text("payment_provider_id"),
-  paymentReference: text("payment_reference"),
-  placedAt: timestamp("placed_at", { withTimezone: true }).notNull().defaultNow(),
-});
-
-export const orderLines = orders.table("order_lines", {
-  lineId: uuid("line_id").primaryKey().defaultRandom(),
-  orderId: uuid("order_id").notNull().references(() => orderRecords.orderId),
-  variantId: uuid("variant_id").notNull(), // id only, plus a snapshot below
-  titleSnapshot: text("title_snapshot").notNull(),
-  skuSnapshot: text("sku_snapshot").notNull(),
-  quantity: integer("quantity").notNull(),
-  unitPriceMinor: integer("unit_price_minor").notNull(),
-});
-```
-
-```ts
-// modules/apps/src/schema.ts
-export const apps = pgSchema("apps");
-
-export const appRegistrations = apps.table("app_registrations", {
-  appId: uuid("app_id").primaryKey().defaultRandom(),
-  baseUrl: text("base_url").notNull().unique(),
-  cardJson: jsonb("card_json").notNull(), // last validated Agent Card
-  cardEtag: text("card_etag"),
-  cardFetchedAt: timestamp("card_fetched_at", { withTimezone: true }).notNull(),
-  rpcUrl: text("rpc_url").notNull(), // chosen JSONRPC interface
-  status: text("status").notNull().default("pending"), // pending | active | suspended
-  grantedScopes: text("granted_scopes").array().notNull(),
-  authScheme: text("auth_scheme").notNull(),
-  credentialRef: text("credential_ref").notNull(), // pointer into the secret store, never the secret
-  installedAt: timestamp("installed_at", { withTimezone: true }).notNull().defaultNow(),
-});
-
-export const appSlotBindings = apps.table("app_slot_bindings", {
-  bindingId: uuid("binding_id").primaryKey().defaultRandom(),
-  appId: uuid("app_id").notNull().references(() => appRegistrations.appId),
-  slotName: text("slot_name").notNull(), // for example product.below-title
-  skillId: text("skill_id").notNull(), // the app skill that renders the fragment
-  priority: integer("priority").notNull().default(100),
-  enabled: boolean("enabled").notNull().default(true),
-});
-```
-
-```ts
-// modules/agent/src/schema.ts
-export const agent = pgSchema("agent");
-
-export const agents = agent.table("agents", {
-  agentId: uuid("agent_id").primaryKey().defaultRandom(),
-  kind: text("kind").notNull(), // copilot | system
-  name: text("name").notNull(),
-  modelName: text("model_name"), // null means rules only
-  autonomyLevel: text("autonomy_level").notNull().default("suggest"), // suggest | approve | auto
-  enabled: boolean("enabled").notNull().default(true),
-});
-
-export const agentTasks = agent.table("agent_tasks", {
-  taskId: uuid("task_id").primaryKey().defaultRandom(),
-  agentId: uuid("agent_id").notNull().references(() => agents.agentId),
-  appId: uuid("app_id"), // id only: set when the task runs on a remote app
-  remoteTaskId: text("remote_task_id"),
-  skillId: text("skill_id").notNull(),
-  state: text("state").notNull(), // mirrors A2A task states
-  input: jsonb("input").notNull(),
-  output: jsonb("output"),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  settledAt: timestamp("settled_at", { withTimezone: true }),
-});
-
-export const agentProposals = agent.table("agent_proposals", {
-  proposalId: uuid("proposal_id").primaryKey().defaultRandom(),
-  agentId: uuid("agent_id").notNull().references(() => agents.agentId),
-  kind: text("kind").notNull(), // slot-binding | collection-order | reorder-stock | theme-setting
-  summary: text("summary").notNull(),
-  change: jsonb("change").notNull(), // what to apply
-  revert: jsonb("revert").notNull(), // how to undo it
-  evidence: jsonb("evidence").notNull(), // metrics that justify it
-  status: text("status").notNull().default("proposed"), // proposed | approved | rejected | applied | reverted
-  decidedAt: timestamp("decided_at", { withTimezone: true }),
-});
-```
+Model outlines for products, orders, apps and agents are in [data-model-prisma.md](data-model-prisma.md).
 
 ## 6. Payments
 
@@ -383,11 +264,13 @@ sequenceDiagram
 |---|---|---|
 | App integration | In-process plugins; webhooks plus REST; A2A agents | A2A, as the owner specified. It gives discovery, auth and async tasks in one standard. |
 | Module isolation | Convention only; schema per module; database per module | Schema per module. Real enforcement without the cost of many databases. |
-| ORM | Prisma; Drizzle; raw SQL | Drizzle. One schema file per module fits isolation. My call. |
+| ORM | Prisma; Drizzle; raw SQL | Prisma 6.19.3. Owner decision. One Prisma schema per module keeps isolation. |
 | HTTP framework | Express; Fastify; Hono | Hono behind a port. Small, and handlers stay framework independent. My call. |
 | Templates | A template language; TypeScript functions | TypeScript functions for the MVP. No parser, full type checking. Revisit if theme authors ask. My call. |
 | App UI injection | Client scripts; iframes; server-side fragments | Server-side fragments. Only this keeps third-party JavaScript off the storefront. |
-| Local database | Docker PostgreSQL; embedded PGlite | PGlite for one-command start, real PostgreSQL in production. To verify in the prototype. My call. |
+| Database | PostgreSQL; embedded PGlite | PostgreSQL everywhere, including local development. Owner decision. |
+| Model provider | One vendor SDK; a gateway | OpenRouter first, behind one interface. Owner decision. |
+| Payments in the prototype | Real Stripe test mode; fake gateway | Fake gateway first; Stripe keys added by the owner afterwards. Owner decision. |
 
 ## 8. Risks
 
