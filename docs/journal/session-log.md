@@ -184,3 +184,25 @@
 - Owner to decide whether lockfile lines are exempt from the 200-line limit.
 - Owner to replace `DATABASE_URL` with an IPv4-reachable connection string.
 - Then push both branches, open the PRs, run the migration and verify isolation.
+
+### 2026-11-15, database PRs opened
+
+**What happened:** The owner exempted generated lockfile lines from the 200-line PR limit. The database layer was pushed as three stacked pull requests: the Prisma dependency, the per-module runner with the catalog schema, and a CI job that runs the migration and a database test against a PostgreSQL service.
+
+**Key changes:**
+- PR #6 `feat/prisma-dependency`: Prisma 6.19.3 in the catalog module (296 lines, 288 lockfile).
+- PR #7 `feat/database-layer`: `pnpm db <module> ...`, `buildModuleDatabaseUrl`, catalog schema and first migration (170 lines). Base: #6.
+- PR #8 `feat/database-ci`: PostgreSQL 17 in CI, `migrate deploy`, database test, clients generated before typecheck and tests (68 lines). Base: #7.
+- Locally: typecheck clean, 15 tests pass, database test skipped.
+
+**Artifacts:**
+- [D] Generated `pnpm-lock.yaml` lines do not count toward the 200-line PR limit; everything else does — invalidates only if the owner changes the rule [critical] [2026-11-15]
+- [D] CI owns a PostgreSQL service, so database tests do not depend on the owner's database — invalidates if CI moves off GitHub Actions [medium] [2026-11-15]
+- [E] A root `postinstall` script did not run under pnpm 12 on an up-to-date install, so the client was never generated — fix: `typecheck` and `test` run `pnpm generate` first [settled] [2026-11-15]
+- [I] `node --env-file=.env` fails when the file is missing; `--env-file-if-exists` is needed for CI — invalidates never [low] [2026-11-15]
+
+**Next steps:**
+- Read the CI result on PR #8; it is the first real run of the migration.
+- Owner to merge #6, then #7, then #8, and #5.
+- Owner to replace `DATABASE_URL` with an IPv4-reachable connection string so the migration can run on the development database.
+- Then roadmap PR 4: catalog persistence and seed data.
