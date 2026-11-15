@@ -6,9 +6,10 @@
   "engines": { "node": ">=22.18" },
   "scripts": {
     "db": "node --env-file-if-exists=.env scripts/run-prisma.ts",
+    "generate": "pnpm --filter \"./modules/*\" exec prisma generate --schema prisma/schema.prisma",
     "dev": "node --watch apps/server/src/main.ts",
-    "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "node --test \"packages/**/*.test.ts\" \"modules/**/*.test.ts\" \"apps/**/*.test.ts\""
+    "typecheck": "pnpm generate && tsc --noEmit -p tsconfig.json",
+    "test": "pnpm generate && node --test \"packages/**/*.test.ts\" \"modules/**/*.test.ts\" \"apps/**/*.test.ts\""
   },
   "devDependencies": {
     "@the-market/core": "workspace:*",

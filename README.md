@@ -50,6 +50,16 @@ pnpm typecheck
 pnpm test
 ```
 
+## Database
+
+Put `DATABASE_URL=postgresql://...` in a `.env` file in the repository root. Each module keeps its tables in its own PostgreSQL schema.
+
+```bash
+pnpm db catalog migrate deploy
+```
+
+`pnpm db <module> <prisma arguments>` runs any Prisma command for one module.
+
 ## Start the server
 
 ```bash
