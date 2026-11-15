@@ -206,3 +206,20 @@
 - Owner to merge #6, then #7, then #8, and #5.
 - Owner to replace `DATABASE_URL` with an IPv4-reachable connection string so the migration can run on the development database.
 - Then roadmap PR 4: catalog persistence and seed data.
+
+### 2026-11-15, database layer verified in CI
+
+**What happened:** CI on PR #8 ran the catalog migration against PostgreSQL 17 and the database test passed, the first real run of the migration. PR #5 turned out to be merged before the last two log entries were pushed to its branch, so those entries and this one are in a new pull request.
+
+**Key changes:**
+- CI on #8: migration `20261115000000_init` applied; 16 of 16 tests pass with none skipped. #6 and #7 pass too.
+- New PR `docs/session-log-database` carries the three log entries that are not yet on main.
+
+**Artifacts:**
+- [I] The catalog migration works on a real PostgreSQL 17 and its tables land in schema `catalog` only (verified in CI run for PR #8) — invalidates if the schema or migration changes [high] [2026-11-15]
+- [E] Two log commits were pushed to a branch whose PR was already merged, so they never reached main — fix: check the PR state before appending to a log branch; entries moved to a new PR [settled] [2026-11-15]
+
+**Next steps:**
+- Owner to merge #6, then #7, then #8, and the session log PR.
+- Owner to replace `DATABASE_URL` with an IPv4-reachable connection string.
+- Then roadmap PR 4: catalog persistence and seed data.
