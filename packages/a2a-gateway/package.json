@@ -1,0 +1,12 @@
+{
+  "name": "@the-market/a2a-gateway",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@the-market/core": "workspace:*"
+  }
+}
