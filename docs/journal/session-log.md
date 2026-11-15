@@ -144,3 +144,19 @@
 **Next steps:**
 - Owner to merge PRs #4 and #5 and add `.env` with `DATABASE_URL`.
 - Then start roadmap PR 3, the Prisma database layer.
+
+### 2026-11-15, stop-hook follow-ups
+
+**What happened:** Two further turns only answered the stop hook's request for a log entry; no project work was done in them. This entry covers both, and any later turn today that does nothing except answer the hook.
+
+**Key changes:**
+- None in the repo besides this entry.
+
+**Artifacts:**
+- [I] The stop hook asks for a new entry after every turn, including turns that only write the entry it asked for, so it cannot be satisfied without a write each time — invalidates if the hook is changed to skip turns with no project work [medium] [2026-11-15]
+- [I] Under the no-push-to-main rule, a log entry can only reach main through a PR, so the newest entries always sit on a feature branch until the owner merges — invalidates if the log moves outside the repo [medium] [2026-11-15]
+- [S] Keep the session log outside the repo, or one file per entry, so logging needs no PR — activates if the owner agrees [low] [2026-11-15]
+
+**Next steps:**
+- Owner to merge PRs #4 and #5, add `.env` with `DATABASE_URL`, and answer the no-model question.
+- Then start roadmap PR 3, the Prisma database layer.
