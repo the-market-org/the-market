@@ -40,3 +40,36 @@
 **Next steps:**
 - Owner to review the Phase 2 design and the prototype roadmap.
 - Owner to answer the four questions at the end of the roadmap, first of all how PRs get opened without a push.
+
+### 2026-11-15, push rule confirmed
+
+**What happened:** The owner confirmed that feature branches may be pushed so PRs can be opened; main stays off-limits. A plan for PR 1 (CI checks) was presented with a diagram. The Phase 2 design, the roadmap and the PR 1 plan are waiting for approval; nothing was built.
+
+**Key changes:**
+- This log entry only. It is uncommitted and will travel with the next PR, since main cannot be pushed.
+
+**Artifacts:**
+- [D] Feature branches may be pushed to open PRs; never push main — invalidates only if the owner changes the rule [critical] [2026-11-15]
+- [D] PR 1 is a GitHub Actions workflow running typecheck and tests on PRs and on main, with no secrets or deploy — invalidates if the owner wants a different CI system [low] [2026-11-15]
+
+**Next steps:**
+- Owner to approve the Phase 2 design, the roadmap and the PR 1 plan.
+- Owner to answer: co-pilot model provider, PGlite for local development, Stripe test keys or fake gateway.
+
+### 2026-11-15, owner decisions on stack
+
+**What happened:** The owner chose OpenRouter as the first model provider, PostgreSQL through Prisma 6.19.3, and a fake payment gateway for the prototype with Stripe keys to follow. The design documents and roadmap were updated to match, replacing my earlier Drizzle and PGlite calls.
+
+**Key changes:**
+- Phase 2: ORM, database, model provider and payment rows now record owner decisions; Drizzle outlines removed in favour of Prisma outlines in a separate file.
+- Roadmap: PR 3 uses Prisma, PR 9 is a fake gateway, PR 16 uses OpenRouter; decisions table added.
+
+**Artifacts:**
+- [D] PostgreSQL through Prisma 6.19.3, one Prisma schema and client per module using `?schema=<module>` — invalidates if per-module generated clients do not work in 6.19.3 (prove in PR 3) [high] [2026-11-15]
+- [D] First model provider is OpenRouter, behind one interface — invalidates if the owner changes provider [medium] [2026-11-15]
+- [D] Prototype payments use a fake gateway; the owner adds Stripe keys afterwards — invalidates when keys arrive [medium] [2026-11-15]
+- [E] My earlier Drizzle and PGlite calls were overruled by the owner — fix: docs updated in this change [settled] [2026-11-15]
+
+**Next steps:**
+- Decide where the local PostgreSQL comes from before PR 3.
+- Merge the three open PRs: owner decisions, Prisma data model outlines, CI checks.

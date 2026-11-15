@@ -220,6 +220,6 @@ The backend returns JSON from the same handlers that feed the theme engine. HTMX
 
 ## Open questions for the owner
 
-1. Which model provider should the central agent use by default, and must a self-hosted store work with no model at all?
+1. Answered 2026-11-15: the central agent starts on OpenRouter. Still open: must a self-hosted store work with no model at all?
 2. Should apps be allowed any client-side JavaScript in a sandboxed iframe later, or never?
 3. Is a hosted app directory part of the commercial offer or the open-source core?
