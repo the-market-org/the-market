@@ -160,3 +160,27 @@
 **Next steps:**
 - Owner to merge PRs #4 and #5, add `.env` with `DATABASE_URL`, and answer the no-model question.
 - Then start roadmap PR 3, the Prisma database layer.
+
+### 2026-11-15, database layer prepared, two blockers
+
+**What happened:** The owner added `.env` and asked for the database layer. Prisma 6.19.3 was added to the catalog module, a per-module Prisma runner (`pnpm db <module> ...`) and the catalog schema with its first migration were built and committed on two local branches. Nothing was pushed, because the dependency change is over the PR line limit and the database could not be reached.
+
+**Key changes:**
+- Local branch `feat/prisma-dependency`: Prisma and `@prisma/client` 6.19.3 in `modules/catalog`, install scripts allowed for Prisma only, `generated/` ignored. 296 changed lines, 288 of them lockfile.
+- Local branch `feat/database-layer` (on top of it): `buildModuleDatabaseUrl`, `scripts/run-prisma.ts`, catalog `schema.prisma`, initial migration SQL generated offline. 170 changed lines.
+- 15 of 15 tests pass, typecheck clean, `prisma validate` and `prisma generate` work per module.
+- The migration has not run against any database.
+
+**Artifacts:**
+- [E] Prisma's lockfile entries alone are 288 lines, so a PR adding Prisma cannot fit the 200-line limit — fix: owner decision needed on whether generated lockfile lines count [critical] [2026-11-15]
+- [E] The database host in `.env` has only an IPv6 address and this machine has no IPv6 route (TCP connect: EHOSTUNREACH) — fix: owner supplies an IPv4-reachable connection string [critical] [2026-11-15]
+- [D] Prisma CLI lives in each module's own package and is run with `pnpm --filter`, so `prisma generate` finds that module's `@prisma/client` — invalidates if modules later share one Prisma install [medium] [2026-11-15]
+- [D] One generated client per module, in `src/generated/client`, git-ignored — proven for one module; invalidates if a second module's client clashes [medium] [2026-11-15]
+- [I] `prisma migrate diff` reads the schema name from the URL: without `?schema=catalog` it emits `CREATE SCHEMA "public"` — invalidates never [low] [2026-11-15]
+- [E] The generated client was committed by mistake during branch surgery and removed before anything was pushed — fix: ignore rule moved into the dependency commit [settled] [2026-11-15]
+- [S] Add a PostgreSQL service to CI and an integration test that runs `migrate deploy` and queries through the catalog client — activates when the dependency PR can be opened [high] [2026-11-15]
+
+**Next steps:**
+- Owner to decide whether lockfile lines are exempt from the 200-line limit.
+- Owner to replace `DATABASE_URL` with an IPv4-reachable connection string.
+- Then push both branches, open the PRs, run the migration and verify isolation.
