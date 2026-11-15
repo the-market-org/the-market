@@ -2,7 +2,7 @@
 
 An open-source, AI-first commerce platform: simple enough for a small shop, modular enough to take apart.
 
-**Status: design and skeletons.** There is no runnable store yet.
+**Status: early prototype.** The server starts and answers a health check; there is no storefront yet.
 
 ```mermaid
 flowchart LR
@@ -49,6 +49,14 @@ pnpm typecheck
 ```bash
 pnpm test
 ```
+
+## Start the server
+
+```bash
+pnpm dev
+```
+
+Then open `http://localhost:3000/health`. Set `PORT` to use another port.
 
 ## Customising
 

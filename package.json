@@ -5,8 +5,9 @@
   "packageManager": "pnpm@12.8.1",
   "engines": { "node": ">=22.18" },
   "scripts": {
+    "dev": "node --watch apps/server/src/main.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "node --test \"packages/**/*.test.ts\" \"modules/**/*.test.ts\""
+    "test": "node --test \"packages/**/*.test.ts\" \"modules/**/*.test.ts\" \"apps/**/*.test.ts\""
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
