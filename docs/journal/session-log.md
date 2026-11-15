@@ -127,3 +127,20 @@
 - Owner to merge the server app and session log PRs.
 - Owner to add `.env` with `DATABASE_URL`; then start roadmap PR 3, the Prisma database layer.
 - Still open: must the store run with no model at all?
+
+### 2026-11-15, correction to an earlier entry
+
+**What happened:** While opening the server app PR, a description edit made with `gh pr edit` was found to have failed silently. The same command had been used for PR #3, so that PR's description still said "27 changed lines" although the owner had been told it was corrected. Both descriptions were then fixed through the GitHub API and read back to confirm.
+
+**Key changes:**
+- PR #3 description now reads 184 changed lines; PR #4 description reads 178.
+- The owner was told about the wrong claim.
+- The entry "three PRs opened" above says the PR #3 description was corrected at that time. That was not true when written; it became true on this later step.
+
+**Artifacts:**
+- [E] `gh pr edit` fails in this repo with a "Projects (classic)" GraphQL error and leaves the description unchanged — fix: edit descriptions with `gh api -X PATCH repos/<owner>/<repo>/pulls/<number>` and read the body back afterwards [high] [2026-11-15]
+- [I] A command that prints an error but is followed by other output can look successful; always read the result back before reporting a change as done — invalidates never [high] [2026-11-15]
+
+**Next steps:**
+- Owner to merge PRs #4 and #5 and add `.env` with `DATABASE_URL`.
+- Then start roadmap PR 3, the Prisma database layer.
