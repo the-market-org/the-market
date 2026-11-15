@@ -160,3 +160,83 @@
 **Next steps:**
 - Owner to merge PRs #4 and #5, add `.env` with `DATABASE_URL`, and answer the no-model question.
 - Then start roadmap PR 3, the Prisma database layer.
+
+### 2026-11-15, database layer prepared, two blockers
+
+**What happened:** The owner added `.env` and asked for the database layer. Prisma 6.19.3 was added to the catalog module, a per-module Prisma runner (`pnpm db <module> ...`) and the catalog schema with its first migration were built and committed on two local branches. Nothing was pushed, because the dependency change is over the PR line limit and the database could not be reached.
+
+**Key changes:**
+- Local branch `feat/prisma-dependency`: Prisma and `@prisma/client` 6.19.3 in `modules/catalog`, install scripts allowed for Prisma only, `generated/` ignored. 296 changed lines, 288 of them lockfile.
+- Local branch `feat/database-layer` (on top of it): `buildModuleDatabaseUrl`, `scripts/run-prisma.ts`, catalog `schema.prisma`, initial migration SQL generated offline. 170 changed lines.
+- 15 of 15 tests pass, typecheck clean, `prisma validate` and `prisma generate` work per module.
+- The migration has not run against any database.
+
+**Artifacts:**
+- [E] Prisma's lockfile entries alone are 288 lines, so a PR adding Prisma cannot fit the 200-line limit — fix: owner decision needed on whether generated lockfile lines count [critical] [2026-11-15]
+- [E] The database host in `.env` has only an IPv6 address and this machine has no IPv6 route (TCP connect: EHOSTUNREACH) — fix: owner supplies an IPv4-reachable connection string [critical] [2026-11-15]
+- [D] Prisma CLI lives in each module's own package and is run with `pnpm --filter`, so `prisma generate` finds that module's `@prisma/client` — invalidates if modules later share one Prisma install [medium] [2026-11-15]
+- [D] One generated client per module, in `src/generated/client`, git-ignored — proven for one module; invalidates if a second module's client clashes [medium] [2026-11-15]
+- [I] `prisma migrate diff` reads the schema name from the URL: without `?schema=catalog` it emits `CREATE SCHEMA "public"` — invalidates never [low] [2026-11-15]
+- [E] The generated client was committed by mistake during branch surgery and removed before anything was pushed — fix: ignore rule moved into the dependency commit [settled] [2026-11-15]
+- [S] Add a PostgreSQL service to CI and an integration test that runs `migrate deploy` and queries through the catalog client — activates when the dependency PR can be opened [high] [2026-11-15]
+
+**Next steps:**
+- Owner to decide whether lockfile lines are exempt from the 200-line limit.
+- Owner to replace `DATABASE_URL` with an IPv4-reachable connection string.
+- Then push both branches, open the PRs, run the migration and verify isolation.
+
+### 2026-11-15, database PRs opened
+
+**What happened:** The owner exempted generated lockfile lines from the 200-line PR limit. The database layer was pushed as three stacked pull requests: the Prisma dependency, the per-module runner with the catalog schema, and a CI job that runs the migration and a database test against a PostgreSQL service.
+
+**Key changes:**
+- PR #6 `feat/prisma-dependency`: Prisma 6.19.3 in the catalog module (296 lines, 288 lockfile).
+- PR #7 `feat/database-layer`: `pnpm db <module> ...`, `buildModuleDatabaseUrl`, catalog schema and first migration (170 lines). Base: #6.
+- PR #8 `feat/database-ci`: PostgreSQL 17 in CI, `migrate deploy`, database test, clients generated before typecheck and tests (68 lines). Base: #7.
+- Locally: typecheck clean, 15 tests pass, database test skipped.
+
+**Artifacts:**
+- [D] Generated `pnpm-lock.yaml` lines do not count toward the 200-line PR limit; everything else does — invalidates only if the owner changes the rule [critical] [2026-11-15]
+- [D] CI owns a PostgreSQL service, so database tests do not depend on the owner's database — invalidates if CI moves off GitHub Actions [medium] [2026-11-15]
+- [E] A root `postinstall` script did not run under pnpm 12 on an up-to-date install, so the client was never generated — fix: `typecheck` and `test` run `pnpm generate` first [settled] [2026-11-15]
+- [I] `node --env-file=.env` fails when the file is missing; `--env-file-if-exists` is needed for CI — invalidates never [low] [2026-11-15]
+
+**Next steps:**
+- Read the CI result on PR #8; it is the first real run of the migration.
+- Owner to merge #6, then #7, then #8, and #5.
+- Owner to replace `DATABASE_URL` with an IPv4-reachable connection string so the migration can run on the development database.
+- Then roadmap PR 4: catalog persistence and seed data.
+
+### 2026-11-15, database layer verified in CI
+
+**What happened:** CI on PR #8 ran the catalog migration against PostgreSQL 17 and the database test passed, the first real run of the migration. PR #5 turned out to be merged before the last two log entries were pushed to its branch, so those entries and this one are in a new pull request.
+
+**Key changes:**
+- CI on #8: migration `20261115000000_init` applied; 16 of 16 tests pass with none skipped. #6 and #7 pass too.
+- New PR `docs/session-log-database` carries the three log entries that are not yet on main.
+
+**Artifacts:**
+- [I] The catalog migration works on a real PostgreSQL 17 and its tables land in schema `catalog` only (verified in CI run for PR #8) — invalidates if the schema or migration changes [high] [2026-11-15]
+- [E] Two log commits were pushed to a branch whose PR was already merged, so they never reached main — fix: check the PR state before appending to a log branch; entries moved to a new PR [settled] [2026-11-15]
+
+**Next steps:**
+- Owner to merge #6, then #7, then #8, and the session log PR.
+- Owner to replace `DATABASE_URL` with an IPv4-reachable connection string.
+- Then roadmap PR 4: catalog persistence and seed data.
+
+### 2026-11-15, generated files pushed by mistake
+
+**What happened:** While creating the log pull request #9, `git add -A` was run on a branch cut from main, where `generated/` is not yet ignored, so 27 generated Prisma client files were committed and pushed to the public repository. A force-push to remove them was refused by the permission system, so #9 was closed and replaced by a clean pull request. The stale branch `docs/session-log-database` still exists on the remote for the owner to delete.
+
+**Key changes:**
+- New clean branch `docs/session-log-database-clean` with only the session log changed.
+- #9 closed without merging.
+
+**Artifacts:**
+- [E] 27 generated Prisma files, including a 4-file leak of the local home directory path and a binary query engine, were pushed on branch `docs/session-log-database` — fix: owner deletes that remote branch; checked that no database host, password or URL is in the files [critical] [2026-11-15]
+- [D] Never use `git add -A` in this repo; stage named paths only and read `git status` before committing — invalidates never [critical] [2026-11-15]
+- [I] `generated/` is ignored only on branches that include PR #6, so any branch cut from main before #6 merges can pick the files up — invalidates once #6 is merged [high] [2026-11-15]
+
+**Next steps:**
+- Owner to delete remote branch `docs/session-log-database`.
+- Owner to merge #6, then #7, then #8, and the clean session log PR.
