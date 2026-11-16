@@ -319,6 +319,7 @@
 - Owner to merge both pull requests.
 - Then open the Prisma adapter pull request, followed by seed data and a products API route.
 
+<<<<<<< HEAD
 ### 2026-11-16, catalog reads and writes PostgreSQL
 
 **What happened:** The owner merged the database-URL wiring and the catalog services. The held Prisma adapter was applied on top of main and opened as a pull request, which completes catalog persistence: the catalog module now stores and lists products in its own PostgreSQL schema instead of memory.
@@ -336,3 +337,111 @@
 - Owner to merge this pull request; roadmap PR 4's persistence part is then complete.
 - Then seed data and a products API route, so products are visible over HTTP.
 - Still open: must the store run with no model at all?
+=======
+### 2026-11-16, the no-model question explained
+
+**What happened:** The owner asked for the pros and cons of whether the store must run with no model at all. They also said the Prisma adapter was merged, but a check showed pull request #16 is still open with CI passing, so catalog persistence is not on main yet. The trade-off was explained and a recommendation given; the owner has not decided yet. No code changed.
+
+**Key changes:**
+- None in code. This entry is committed on local branch `feat/catalog-seed` and travels with the next pull request.
+
+**Artifacts:**
+- [D] Recommended, not yet decided by the owner: the commerce side never depends on a model, and the co-pilot is optional, using simple rules without a key and OpenRouter with one, behind one interface — invalidates if the owner chooses a model-required store [medium] [2026-11-16]
+- [I] A rules-only path fits the business model: the free core runs anywhere and the hosted offer adds the model — invalidates if the commercial offer changes [medium] [2026-11-16]
+- [E] The first draft of this entry repeated "merged" without checking; #16 was still open — fix: read the pull request state before recording a merge [settled] [2026-11-16]
+- [I] Requiring a model would still need faked model calls for CI and the demo, which is most of the work of a rules-only path — invalidates never [low] [2026-11-16]
+
+**Next steps:**
+- Owner to merge #16; the seed data step depends on it.
+- Owner to decide the no-model question; it does not block the next step.
+- Seed data and a products API route, on the owner's word.
+>>>>>>> da1c7f8 (Log the no-model trade-off discussion)
+
+### 2026-11-16, central agent design draft
+
+**What happened:** The owner merged #16, so catalog persistence is on main. They decided the store must run with no model but that the model is central to the product, a builder and optimiser rather than a sidekick, and asked for a system design draft before any further work. The draft was written in two parts and opened as two pull requests.
+
+**Key changes:**
+- PR #17: `docs/architecture/agent-design-part-1-core.md`: position, principles, architecture, capabilities, the builder, change sets, what works with no model.
+- PR #18: `docs/architecture/agent-design-part-2-optimiser-and-safety.md`: optimiser loop, model gateway, safety, data model, roadmap effect, open questions.
+- All 9 diagrams parse. OpenRouter facts were read from its documentation.
+- No code changed. Seed data is on hold until the design is reviewed.
+
+**Artifacts:**
+- [D] Owner decision: the model is central to the product (builder and optimiser); the store must still sell with no model — invalidates only if the owner changes it [critical] [2026-11-16]
+- [D] Proposed, not yet approved: two planes over one capability layer; the commerce plane never calls a model, the agent plane needs one — invalidates if the owner wants the model in the selling path [high] [2026-11-16]
+- [D] Proposed, not yet approved: every store operation is a capability exposed as agent tool, admin API, A2A skill and playbook step; the agent only writes change sets that are previewed, approved, applied and reverted — invalidates if an operation cannot be made reversible [high] [2026-11-16]
+- [D] Proposed, not yet approved: pages become data (ordered sections with settings) so the model can build them; sections stay code — invalidates if theme authors need logic that data cannot express [high] [2026-11-16]
+- [D] Proposed, not yet approved: experiment outcomes are decided by fixed statistics in code, not by the model — invalidates never [medium] [2026-11-16]
+- [I] OpenRouter offers tool calling, JSON Schema output, model fallbacks, `data_collection: "deny"`, `zdr`, and per-response cost (read 2026-11-16) — invalidates if OpenRouter changes its API [medium] [2026-11-16]
+- [S] Builder writes new section code in a sandbox with a review step — activates if the owner answers yes to open question 1 [medium] [2026-11-16]
+
+**Next steps:**
+- Owner to review #17 and #18 and answer the five open questions in part 2.
+- After approval: revise the roadmap, then build seed data and the capability registry.
+
+### 2026-11-16, publisher and tenant topology proposed by the owner
+
+**What happened:** The owner shared a diagram that adds a new layer to the project: a closed-source "publisher wrapper" that creates and hosts tenant stores, around the open-source tenant app. The diagram was played back and four points that change the current design were raised. Nothing was written into the design documents yet, because one of those points decides the architecture.
+
+**Key changes:**
+- None in code or design documents. This entry only.
+
+**Artifacts:**
+- [D] Owner direction: two products. A closed-source publisher wrapper creates tenant stores and assigns each a PostgreSQL database, storage, merchant access, domains and email, and access to the agent app over A2A, MCP and events. The tenant app is open source — invalidates only if the owner changes it [critical] [2026-11-16]
+- [D] Owner direction: the tenant app authenticates with Supabase authentication, and connected apps are authorised through the publisher wrapper — invalidates only if the owner changes it [high] [2026-11-16]
+- [D] Owner direction: a team of agents built with CrewAI helps merchants improve their store, as a plugin — open point: CrewAI is a Python framework and the tenant app is TypeScript, so where the agent team runs is undecided [critical] [2026-11-16]
+- [I] MCP is a new integration surface next to A2A; capabilities could be exposed as MCP tools with little extra design — invalidates if the owner wants MCP for something else [medium] [2026-11-16]
+- [I] "Plugin" for the agent team and "the model is central" need reconciling; a separate agent service that is the default but replaceable fits both — invalidates if the owner means something else by plugin [high] [2026-11-16]
+
+**Next steps:**
+- Owner to say where the CrewAI agent team runs and whether it is open source.
+- Then write the topology into the design as a third part and adjust parts 1 and 2.
+
+### 2026-11-16, topology confirmed and written up
+
+**What happened:** The owner confirmed the agent runs as a separate CrewAI service and is central, and clarified the split: stores created by the publisher run on the business's private infrastructure with Supabase and the business's agent service; self-hosted stores bring their own authentication, database, infrastructure and agent. This was written up as design part 3, and parts 1 and 2 were updated to move the agents and model gateway out of the tenant app.
+
+**Key changes:**
+- PR #20: `docs/architecture/agent-design-part-3-publisher-and-tenant.md` (150 lines, 4 diagrams).
+- PR #17 (part 1) updated: architecture diagram now shows the agent service outside the tenant app and an agent connection inside it; 199 lines.
+- PR #18 (part 2) updated: model gateway placed in the agent service; roadmap shows an agent connection and an example agent in this repository; 169 lines.
+- All 13 diagrams across the three parts parse.
+
+**Artifacts:**
+- [D] Owner decision: the agent is a separate service built with CrewAI, central to the product, run by the closed publisher for hosted stores; a self-hosted store must plug in its own agent — invalidates only if the owner changes it [critical] [2026-11-16]
+- [D] Owner decision: hosted stores use Supabase for database and authentication on the business's private infrastructure; self-hosted stores run their own authentication, database and infrastructure — invalidates only if the owner changes it [critical] [2026-11-16]
+- [D] Proposed, not yet approved: the tenant app depends on six sockets (identity, database, file storage, mail, app authoriser, agent connection) so one codebase serves both cases — invalidates if a hosted feature cannot be expressed through a socket [high] [2026-11-16]
+- [D] Proposed, not yet approved: the agent connection is MCP tools for capabilities, A2A for longer tasks and events for observation; capabilities, change sets, policy and experiments stay in the open-source tenant app — invalidates if CrewAI cannot consume one of the three channels [high] [2026-11-16]
+- [D] Proposed, not yet approved: an example scripted agent in this repository proves the agent connection — invalidates if the owner wants no agent code in the open repository [medium] [2026-11-16]
+- [I] This repository is public, so publisher and agent service internals should be designed in a private repository — invalidates if the owner decides otherwise [high] [2026-11-16]
+- [I] Not verified: how CrewAI connects to MCP servers and A2A agents, and Supabase's limits for one database per tenant — invalidates once checked [medium] [2026-11-16]
+
+**Next steps:**
+- Owner to review #17, #18 and #20 and answer the open questions in parts 2 and 3.
+- After approval: revise the roadmap, then seed data and the capability registry.
+
+### 2026-11-16, tenancy decided and the build plan written
+
+**What happened:** The owner decided tenancy is one database for everything with one row per tenant, that closed-source parts stay in separate folders of this repository for now, and asked for every tool reference to be removed from pull requests, commits and code. They also asked for a fully detailed diagram and plan that any implementer can follow. The references were removed, design part 3 was updated, and a master build plan plus detailed plans for the first three work packages were opened as pull requests.
+
+**Key changes:**
+- Tool attribution lines removed from the descriptions of pull requests #1 to #20; titles, comments, commits and tracked files were checked and held none.
+- PR #20 (design part 3) updated: a tenancy section, the hosted-store sequence, where closed code lives, decisions and open questions. 178 lines.
+- PR #21: master build plan with the whole-system diagram, repository map, 21 rules and 15 work packages.
+- PR #22, #23, #24: detailed plans for tenancy, seed data and products route, and the capability registry, with exact files, signatures, test cases and commands.
+- All diagrams in the documents and pull request descriptions parse.
+
+**Artifacts:**
+- [D] Owner decision: one database for everything; a `tenant` table with one row per tenant; one running app serves all tenants — invalidates only if the owner changes it [critical] [2026-11-16]
+- [D] Owner decision: closed-source parts (`publisher/`, `agent-service/`) live in separate folders of this repository for now and move out later — invalidates when they are migrated [high] [2026-11-16]
+- [D] Owner decision: no reference to any assistant or tool in pull requests, commits or code — invalidates never [critical] [2026-11-16]
+- [D] Every table carries `tenant_id`, every public service input carries `tenantId`, and only a module's database adapter turns it into a filter — invalidates if row-level security replaces adapter filtering [high] [2026-11-16]
+- [D] The tenant is resolved from the request's host name; unknown hosts get 404 — invalidates if the owner needs path or header based tenants [medium] [2026-11-16]
+- [D] Detailed plans exist for work packages 1 to 3 only; later plans are written when the package before them merges, because their interfaces depend on what was built — invalidates if the owner wants all plans up front [medium] [2026-11-16]
+- [I] This repository is public, so closed code committed to `publisher/` or `agent-service/` is published — invalidates when the repository becomes private [critical] [2026-11-16]
+- [I] `import.meta.main` works on Node 22.23, which the seed script plan relies on — invalidates on a Node below 22.18 [low] [2026-11-16]
+
+**Next steps:**
+- Owner to review and merge #17 to #24.
+- Then implement work package 1, task 1 (tenancy services).
