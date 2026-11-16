@@ -1,7 +1,7 @@
 # Central agent design — part 1: core
 
 Date: 2026-11-16. Status: **draft for owner review. Nothing here is built.**
-Part 2 covers the optimiser, the model gateway, safety and the data model.
+Part 2 covers the optimiser, the model gateway, safety and the data model. Part 3 covers the publisher, the tenant app and the separate agent service.
 
 ## 1. Position
 
@@ -33,6 +33,8 @@ flowchart TB
 
 So "runs with no model" means the store keeps selling and stays fully editable by hand. It does not mean the agent is optional to the product.
 
+The agent plane runs as a separate **agent service**, outside the tenant app: the business's CrewAI service for hosted stores, the owner's own agent for self-hosted ones (part 3).
+
 ## 2. Principles
 
 1. **Agent-native.** Every operation is a capability the agent can call. No admin feature exists that the agent cannot use.
@@ -46,27 +48,44 @@ So "runs with no model" means the store keeps selling and stays fully editable b
 ```mermaid
 flowchart LR
     U[Merchant] --> CH[Conversation and<br/>review screen]
-    CH --> RT[Agent runtime<br/>plan, call tools, resume]
-    RT --> MG[Model gateway]
-    MG --> OR[(OpenRouter)]
-    RT --> CR[Capability registry]
-    RT --> KN[Store knowledge<br/>state, metrics, memory]
-    CR --> POL{Policy<br/>risk and autonomy}
-    POL --> CS[Change sets<br/>draft, preview, apply, revert]
-    CS --> WF[Workflows]
-    WF --> MOD[Modules]
-    MOD --> EV((Events))
-    EV --> KN
+    CH --> RT
+    subgraph AGS[Agent service: outside the tenant app]
+        RT[Agent team<br/>plan, call tools, resume]
+        MG[Model gateway]
+        RT --> MG
+    end
+    MG --> OR[(Model provider)]
+    subgraph TEN[Tenant app: open source]
+        IF[Agent connection<br/>MCP, A2A, events]
+        CR[Capability registry]
+        KN[Store knowledge<br/>state and metrics]
+        POL{Policy<br/>risk and autonomy}
+        CS[Change sets<br/>draft, preview, apply, revert]
+        WF[Workflows]
+        MOD[Modules]
+        EV((Events))
+        IF --> CR
+        IF --> KN
+        CR --> POL
+        POL --> CS
+        CS --> WF
+        WF --> MOD
+        MOD --> EV
+        EV --> KN
+        EV --> IF
+    end
+    RT <--> IF
     CR <-->|skills as tools| GW[A2A gateway]
     GW <--> APPS[Third-party apps]
 ```
 
 | Part | Job |
 |---|---|
-| Agent runtime | Runs a task as a loop: plan, call a capability, read the result, continue. Every step is stored, so a task survives a restart or a model outage and resumes. |
-| Model gateway | The one place that talks to a model. Part 2. |
+| Agent team, in the agent service | Runs a task as a loop: plan, call a capability, read the result, continue. Every step is stored, so a task survives a restart or a model outage and resumes. |
+| Model gateway, in the agent service | The one place that talks to a model. Part 2. |
+| Agent connection | The tenant app's three channels to any agent: MCP tools, A2A tasks and events. Part 3. |
 | Capability registry | Lists every capability with its input schema, risk and reversibility. |
-| Store knowledge | What the agent may read: current store state, aggregated metrics, and notes it has learned about this store. |
+| Store knowledge | What the agent may read: current store state and aggregated metrics. What an agent learns across runs is kept by the agent service. |
 | Policy | Decides whether a change needs approval, from its risk tier and the merchant's autonomy settings. Part 2. |
 | Change sets | Holds proposed changes until they are approved, then applies them through workflows. |
 
@@ -119,7 +138,7 @@ This refines the Phase 2 choice "templates are TypeScript functions": sections s
 sequenceDiagram
     autonumber
     actor Merchant
-    participant RT as Agent runtime
+    participant RT as Agent service
     participant CR as Capabilities
     participant CS as Change set
     participant SF as Storefront
@@ -166,9 +185,9 @@ stateDiagram-v2
 - Every applied change set records who or what proposed it, who approved it, and the evidence behind it.
 - An experiment variant (part 2) is a change set shown to part of the traffic.
 
-## 7. What works with no model
+## 7. What works with no agent or no model
 
-| Area | With a model | With no model, or during an outage |
+| Area | With an agent connected | With no agent, or during an outage |
 |---|---|---|
 | Storefront, cart, checkout, payments | Works | Works, unchanged |
 | Editing the store | By conversation, or by hand | By hand, through the same capabilities |
