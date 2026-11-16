@@ -319,6 +319,7 @@
 - Owner to merge both pull requests.
 - Then open the Prisma adapter pull request, followed by seed data and a products API route.
 
+<<<<<<< HEAD
 ### 2026-11-16, catalog reads and writes PostgreSQL
 
 **What happened:** The owner merged the database-URL wiring and the catalog services. The held Prisma adapter was applied on top of main and opened as a pull request, which completes catalog persistence: the catalog module now stores and lists products in its own PostgreSQL schema instead of memory.
@@ -336,3 +337,45 @@
 - Owner to merge this pull request; roadmap PR 4's persistence part is then complete.
 - Then seed data and a products API route, so products are visible over HTTP.
 - Still open: must the store run with no model at all?
+=======
+### 2026-11-16, the no-model question explained
+
+**What happened:** The owner asked for the pros and cons of whether the store must run with no model at all. They also said the Prisma adapter was merged, but a check showed pull request #16 is still open with CI passing, so catalog persistence is not on main yet. The trade-off was explained and a recommendation given; the owner has not decided yet. No code changed.
+
+**Key changes:**
+- None in code. This entry is committed on local branch `feat/catalog-seed` and travels with the next pull request.
+
+**Artifacts:**
+- [D] Recommended, not yet decided by the owner: the commerce side never depends on a model, and the co-pilot is optional, using simple rules without a key and OpenRouter with one, behind one interface — invalidates if the owner chooses a model-required store [medium] [2026-11-16]
+- [I] A rules-only path fits the business model: the free core runs anywhere and the hosted offer adds the model — invalidates if the commercial offer changes [medium] [2026-11-16]
+- [E] The first draft of this entry repeated "merged" without checking; #16 was still open — fix: read the pull request state before recording a merge [settled] [2026-11-16]
+- [I] Requiring a model would still need faked model calls for CI and the demo, which is most of the work of a rules-only path — invalidates never [low] [2026-11-16]
+
+**Next steps:**
+- Owner to merge #16; the seed data step depends on it.
+- Owner to decide the no-model question; it does not block the next step.
+- Seed data and a products API route, on the owner's word.
+>>>>>>> da1c7f8 (Log the no-model trade-off discussion)
+
+### 2026-11-16, central agent design draft
+
+**What happened:** The owner merged #16, so catalog persistence is on main. They decided the store must run with no model but that the model is central to the product, a builder and optimiser rather than a sidekick, and asked for a system design draft before any further work. The draft was written in two parts and opened as two pull requests.
+
+**Key changes:**
+- PR #17: `docs/architecture/agent-design-part-1-core.md`: position, principles, architecture, capabilities, the builder, change sets, what works with no model.
+- PR #18: `docs/architecture/agent-design-part-2-optimiser-and-safety.md`: optimiser loop, model gateway, safety, data model, roadmap effect, open questions.
+- All 9 diagrams parse. OpenRouter facts were read from its documentation.
+- No code changed. Seed data is on hold until the design is reviewed.
+
+**Artifacts:**
+- [D] Owner decision: the model is central to the product (builder and optimiser); the store must still sell with no model — invalidates only if the owner changes it [critical] [2026-11-16]
+- [D] Proposed, not yet approved: two planes over one capability layer; the commerce plane never calls a model, the agent plane needs one — invalidates if the owner wants the model in the selling path [high] [2026-11-16]
+- [D] Proposed, not yet approved: every store operation is a capability exposed as agent tool, admin API, A2A skill and playbook step; the agent only writes change sets that are previewed, approved, applied and reverted — invalidates if an operation cannot be made reversible [high] [2026-11-16]
+- [D] Proposed, not yet approved: pages become data (ordered sections with settings) so the model can build them; sections stay code — invalidates if theme authors need logic that data cannot express [high] [2026-11-16]
+- [D] Proposed, not yet approved: experiment outcomes are decided by fixed statistics in code, not by the model — invalidates never [medium] [2026-11-16]
+- [I] OpenRouter offers tool calling, JSON Schema output, model fallbacks, `data_collection: "deny"`, `zdr`, and per-response cost (read 2026-11-16) — invalidates if OpenRouter changes its API [medium] [2026-11-16]
+- [S] Builder writes new section code in a sandbox with a review step — activates if the owner answers yes to open question 1 [medium] [2026-11-16]
+
+**Next steps:**
+- Owner to review #17 and #18 and answer the five open questions in part 2.
+- After approval: revise the roadmap, then build seed data and the capability registry.
