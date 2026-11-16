@@ -1,0 +1,24 @@
+// The tenancy module's own schema. Run Prisma through `pnpm db tenancy ...`,
+// which points MODULE_DATABASE_URL at the "tenancy" PostgreSQL schema.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("MODULE_DATABASE_URL")
+}
+
+// One row per tenant. This is the one table without a tenant_id column.
+model Tenant {
+  tenantId    String   @id @default(uuid()) @map("tenant_id") @db.Uuid
+  slug        String   @unique
+  name        String
+  primaryHost String   @unique @map("primary_host")
+  status      String   @default("active") // active | suspended
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("tenant")
+}
