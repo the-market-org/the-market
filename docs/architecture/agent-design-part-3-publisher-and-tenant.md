@@ -69,7 +69,7 @@ flowchart LR
 | File storage | Put, get and delete a file. |
 | Mail sender | Send one message. |
 | App authoriser | "May this app be connected with these permissions?" |
-| Agent connection | Section 4. |
+| Agent connection | Section 5. |
 
 **App authoriser, in plain words.** Before an app is connected, something must say yes. In the hosted product the publisher says yes or no. A self-hosted store has no publisher, so the store's own owner says yes or no on an approval screen in their store. It is the same question with two possible answerers.
 
