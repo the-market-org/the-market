@@ -14,6 +14,8 @@ This entry is its own file so that it does not conflict with the entries pull re
 - [E] A check of #26's state did not stop the script, so a replay onto main began before the open state was noticed — fix: the state check must end the script when the pull request is not merged; undone with no loss [settled] [2026-11-16]
 - [I] Ruleset "Prevent Push" requires 1 approving review on every pull request; the author cannot approve their own, so every pull request needs the owner's bypass, a second reviewer, or a rule change — invalidates if the ruleset changes [critical] [2026-11-16]
 - [D] Unblocking options put to the owner: use the bypass in the merge box; add a second reviewer; or set required approvals to 0 while keeping pull requests mandatory. Repository settings are the owner's to change — invalidates once the owner chooses [high] [2026-11-16]
+- [E] `session-log.md` on main held three leftover conflict-marker lines from an earlier cherry-pick, around two intact entries — fix: markers removed in a follow-up pull request; search a resolved file for markers before committing it [settled] [2026-11-16]
+- [E] The marker fix was first pushed to this entry's pull request after it had already merged, so it never reached main — fix: read a pull request's state before pushing more commits to its branch [settled] [2026-11-16]
 - [S] Keep one file per log entry under `docs/journal/`, as this entry does, so parallel pull requests never conflict on the log — activates if the owner agrees [medium] [2026-11-16]
 
 **Next steps:**
