@@ -445,3 +445,22 @@
 **Next steps:**
 - Owner to review and merge #17 to #24.
 - Then implement work package 1, task 1 (tenancy services).
+
+### 2026-11-16, work package 1 task 1: tenancy services
+
+**What happened:** The owner merged the design and plan pull requests and asked to start. Task 1 of the tenancy plan was built test-first: the tenancy services over a storage port, with host name normalisation. Running the tests exposed a flaw in the plan, which was corrected in the same pull request.
+
+**Key changes:**
+- `modules/tenancy/src/tenancy-services.ts`: `normaliseHost`, `resolveTenant`, `buildTenancyServices`, and the `TenancyDatabase` port.
+- `modules/tenancy/src/tenancy-services.test.ts`: four tests against an array-backed fake.
+- Plan corrected: the module's `package.json` moves from task 1 to task 2.
+- Typecheck clean; 20 tests pass, the database test skipped without a URL.
+
+**Artifacts:**
+- [E] The plan created `modules/tenancy/package.json` before the module had a Prisma schema; `pnpm generate` runs Prisma in every module package and failed, which stopped `pnpm test` — fix: create the package file together with the schema in task 2 [settled] [2026-11-16]
+- [I] A source file under `modules/<name>/src` can import `@the-market/core` without its own `package.json`, because the root package depends on it — invalidates if the root dependency is removed [low] [2026-11-16]
+- [D] Only tenants with status `active` resolve; suspended tenants look like unknown hosts — invalidates if suspended stores must show a notice page [medium] [2026-11-16]
+
+**Next steps:**
+- Owner to merge this pull request.
+- Then task 2: the `tenant` table, its migration and the Prisma adapter.
