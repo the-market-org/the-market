@@ -298,3 +298,23 @@
 - Owner to merge this pull request.
 - Then roadmap PR 4: catalog persistence and seed data, replacing the in-memory product list.
 - Still open: must the store run with no model at all?
+
+### 2026-11-16, catalog persistence in three steps
+
+**What happened:** The owner merged the CI database step and asked for catalog persistence. The full change was built and verified locally (266 lines), then split into independent pull requests against main to respect the 200-line limit: database-URL wiring, catalog services, and (after those merge) the Prisma adapter.
+
+**Key changes:**
+- PR `feat/module-database-url`: each module receives a database URL for its own schema through `ModuleContext`; the server passes it and requires `DATABASE_URL`; `pnpm dev` loads `.env`.
+- PR `feat/catalog-services`: catalog services over a `CatalogDatabase` port, with unit tests against a fake.
+- Held locally in commit `8570806`: the Prisma adapter, the module wiring and the updated database test.
+- Verified with the full change in place: typecheck clean, 16 tests pass, the database test passed on the development database, and the real server started with the database URL.
+
+**Artifacts:**
+- [D] Modules get their database through `ModuleContext.databaseUrl`, already pointed at their own schema; modules never read the environment — invalidates if a module needs a second data store [high] [2026-11-16]
+- [D] Catalog services depend on a `CatalogDatabase` port; `prisma-catalog-database.ts` is the only file allowed to import the Prisma client — invalidates if a query cannot be expressed through the port [medium] [2026-11-16]
+- [I] A product summary shows the lowest variant price — invalidates if the storefront needs price ranges [low] [2026-11-16]
+- [I] Work over 200 lines can often be split into independent pull requests on main when new files are not yet wired in; only the wiring step has to wait for merges — invalidates never [medium] [2026-11-16]
+
+**Next steps:**
+- Owner to merge both pull requests.
+- Then open the Prisma adapter pull request, followed by seed data and a products API route.

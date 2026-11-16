@@ -14,6 +14,8 @@ export type EventHandler = (payload: unknown) => Promise<void> | void;
 export interface ModuleContext {
   moduleName: string;
   schemaName: string;
+  /** Database URL already pointed at this module's own schema. */
+  databaseUrl: string;
   publishEvent: (eventName: string, payload: unknown) => Promise<void>;
   subscribeEvent: (eventName: string, handleEvent: EventHandler) => void;
 }
