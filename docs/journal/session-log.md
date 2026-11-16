@@ -319,7 +319,6 @@
 - Owner to merge both pull requests.
 - Then open the Prisma adapter pull request, followed by seed data and a products API route.
 
-<<<<<<< HEAD
 ### 2026-11-16, catalog reads and writes PostgreSQL
 
 **What happened:** The owner merged the database-URL wiring and the catalog services. The held Prisma adapter was applied on top of main and opened as a pull request, which completes catalog persistence: the catalog module now stores and lists products in its own PostgreSQL schema instead of memory.
@@ -337,7 +336,7 @@
 - Owner to merge this pull request; roadmap PR 4's persistence part is then complete.
 - Then seed data and a products API route, so products are visible over HTTP.
 - Still open: must the store run with no model at all?
-=======
+
 ### 2026-11-16, the no-model question explained
 
 **What happened:** The owner asked for the pros and cons of whether the store must run with no model at all. They also said the Prisma adapter was merged, but a check showed pull request #16 is still open with CI passing, so catalog persistence is not on main yet. The trade-off was explained and a recommendation given; the owner has not decided yet. No code changed.
@@ -355,7 +354,6 @@
 - Owner to merge #16; the seed data step depends on it.
 - Owner to decide the no-model question; it does not block the next step.
 - Seed data and a products API route, on the owner's word.
->>>>>>> da1c7f8 (Log the no-model trade-off discussion)
 
 ### 2026-11-16, central agent design draft
 
