@@ -36,5 +36,6 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm db catalog migrate deploy
+      - run: pnpm db tenancy migrate deploy
       - run: pnpm typecheck
       - run: pnpm test

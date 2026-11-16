@@ -464,3 +464,60 @@
 **Next steps:**
 - Owner to merge this pull request.
 - Then task 2: the `tenant` table, its migration and the Prisma adapter.
+
+### 2026-11-16, task 2 held: pull request #25 not merged
+
+**What happened:** The owner said the tenancy services were merged and asked to continue. A check showed pull request #25 is still open: its checks pass and it has no conflicts, but GitHub reports its merge state as blocked. Task 2 depends on it, so only the parts that do not were prepared, locally and unpushed.
+
+**Key changes:**
+- Local branch `feat/tenancy-database`, not pushed: the tenancy module's `package.json`, the `tenant` table schema and its generated migration. `prisma validate` passes.
+- Nothing was applied to the database.
+- This entry is an uncommitted local change and travels with the task 2 pull request.
+
+**Artifacts:**
+- [E] Pull request #25 is open with merge state "blocked" although checks pass — fix: owner to read the reason in the merge box on the pull request page [high] [2026-11-16]
+- [I] An active repository ruleset named "Prevent Push" exists; what it requires could not be read through the API — invalidates once the owner confirms its rules [medium] [2026-11-16]
+- [I] Always read a pull request's state before building on it; "merged" was reported twice when one pull request was still open — invalidates never [high] [2026-11-16]
+
+**Next steps:**
+- Owner to merge #25, or say what the ruleset requires.
+- Then finish task 2: Prisma adapter, module index, database test, CI step.
+
+### 2026-11-16, work package 1 task 2: tenant table and adapter
+
+**What happened:** After #25 was confirmed merged, task 2 was built on current main: the `tenant` table, its migration, the Prisma adapter and the module index. The migration was applied to the development database and the database test passed there.
+
+**Key changes:**
+- `modules/tenancy/package.json` and `prisma/schema.prisma`: the `Tenant` model mapped to table `tenant` in schema `tenancy`, with unique `slug` and `primary_host`.
+- `prisma/migrations/20261116000000_init`: generated without a database; first statement creates schema `tenancy`.
+- `src/prisma-tenancy-database.ts` implements `TenancyDatabase`; `src/index.ts` exports `tenancyModule`.
+- `src/tenancy-database.test.ts`: insert, find by host, unknown host, table lives in schema `tenancy` only.
+- CI runs `pnpm db tenancy migrate deploy`.
+- Checks: typecheck clean; 20 tests pass with 2 database tests skipped locally; both database tests pass against the development database.
+
+**Artifacts:**
+- [I] The `tenant` table exists in schema `tenancy` on the development database (migration applied 2026-11-16) — invalidates if the schema is reset [medium] [2026-11-16]
+- [I] `pnpm generate` picks up a new module automatically once it has a `package.json` and a Prisma schema; no script change was needed — invalidates if the generate script changes [low] [2026-11-16]
+- [D] `findTenantByHost` returns `undefined`, not `null`, for a missing tenant, so the port stays free of Prisma's conventions — invalidates never [low] [2026-11-16]
+
+**Next steps:**
+- Owner to merge this pull request.
+- Then task 3: the server resolves the tenant from the host name.
+
+### 2026-11-16, task 3 built and held; reviews now required
+
+**What happened:** The owner asked to continue, but pull request #26 was still open. The repository ruleset was read: every pull request needs one approving review, and #26 shows "review required" with passing checks. Task 3 was built and verified locally on top of #26's branch and is held unpushed until #26 reaches main. Later the same day the owner reported #26 merged; a check found it still open with no reviews, so task 3 stayed held (commit kept on local branch `held/task-3`).
+
+**Key changes:**
+- Local only, commit `1f2e292` on `feat/server-tenant-resolution`: tenant resolution in the HTTP adapter, `compose-modules.ts`, `composeServer` taking a registry. 198 counted lines.
+- Verified locally: typecheck clean, 23 tests pass, the real server loaded tenancy and catalog against the development database.
+- This entry is added to pull request #26 so it is in the repository now.
+
+**Artifacts:**
+- [E] Pull request #26 cannot merge without an approving review, and its author cannot approve it — fix: owner uses the bypass, adds a reviewer, or lowers the required approvals [critical] [2026-11-16]
+- [I] Ruleset "Prevent Push": all branches, pull request required, 1 approving review, no deletion, no force push, 1 bypass actor (read through the rulesets API) — invalidates if the ruleset changes [high] [2026-11-16]
+- [D] Work that depends on an unmerged pull request is built locally on that branch and held unpushed, never opened as a stacked pull request — invalidates never [medium] [2026-11-16]; and its state is read with a command that stops the script when it is not merged [high] [2026-11-16]
+
+**Next steps:**
+- Owner to merge #26.
+- Then move task 3 onto main and open its pull request.
