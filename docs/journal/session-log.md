@@ -503,3 +503,21 @@
 **Next steps:**
 - Owner to merge this pull request.
 - Then task 3: the server resolves the tenant from the host name.
+
+### 2026-11-16, task 3 built and held; reviews now required
+
+**What happened:** The owner asked to continue, but pull request #26 was still open. The repository ruleset was read: every pull request needs one approving review, and #26 shows "review required" with passing checks. Task 3 was built and verified locally on top of #26's branch and is held unpushed until #26 reaches main.
+
+**Key changes:**
+- Local only, commit `1f2e292` on `feat/server-tenant-resolution`: tenant resolution in the HTTP adapter, `compose-modules.ts`, `composeServer` taking a registry. 198 counted lines.
+- Verified locally: typecheck clean, 23 tests pass, the real server loaded tenancy and catalog against the development database.
+- This entry is added to pull request #26 so it is in the repository now.
+
+**Artifacts:**
+- [E] Pull request #26 cannot merge without an approving review, and its author cannot approve it — fix: owner uses the bypass, adds a reviewer, or lowers the required approvals [critical] [2026-11-16]
+- [I] Ruleset "Prevent Push": all branches, pull request required, 1 approving review, no deletion, no force push, 1 bypass actor (read through the rulesets API) — invalidates if the ruleset changes [high] [2026-11-16]
+- [D] Work that depends on an unmerged pull request is built locally on that branch and held unpushed, never opened as a stacked pull request — invalidates never [medium] [2026-11-16]
+
+**Next steps:**
+- Owner to merge #26.
+- Then move task 3 onto main and open its pull request.
