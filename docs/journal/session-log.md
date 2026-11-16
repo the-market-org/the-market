@@ -278,3 +278,23 @@
 - Owner to merge #11, #12 and #10.
 - Then open the CI database pull request against main.
 - Owner to swap `DATABASE_URL` for the Supabase session pooler string, then run the first migration on the development database.
+
+### 2026-11-16, database layer complete
+
+**What happened:** The owner merged the cleanup, the database layer and the session log, and switched `DATABASE_URL` to the Supabase session pooler. The CI database step and database test were reopened against main, and the catalog migration was applied to the development database for the first time.
+
+**Key changes:**
+- PR `feat/database-ci-main`: the content of #8 on main: PostgreSQL 17 in CI, `migrate deploy`, the database test, clients generated before typecheck and tests.
+- Development database: migration `20261115000000_init` applied through the session pooler; schema `catalog` now holds `products` and `variants`.
+- The database test passed against the development database: it wrote and removed one product and found the tables in schema `catalog` only.
+- main no longer contains generated files.
+
+**Artifacts:**
+- [I] Schema creation and Prisma migrations work through Supabase's session pooler on the free plan with the default `postgres` user (verified by `migrate deploy` and the database test) — invalidates if Supabase changes pooler behaviour [high] [2026-11-16]
+- [D] Roadmap PR 3 (database layer) is complete once this pull request merges; isolation is proven for one module only — invalidates when a second module's schema is added and tested [medium] [2026-11-16]
+- [S] Give each module its own database role so one module cannot read another's schema even with raw SQL — activates when the second module with a schema lands [medium] [2026-11-16]
+
+**Next steps:**
+- Owner to merge this pull request.
+- Then roadmap PR 4: catalog persistence and seed data, replacing the in-memory product list.
+- Still open: must the store run with no model at all?
