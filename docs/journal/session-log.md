@@ -223,3 +223,58 @@
 - Owner to merge #6, then #7, then #8, and the session log PR.
 - Owner to replace `DATABASE_URL` with an IPv4-reachable connection string.
 - Then roadmap PR 4: catalog persistence and seed data.
+
+### 2026-11-15, generated files pushed by mistake
+
+**What happened:** While creating the log pull request #9, `git add -A` was run on a branch cut from main, where `generated/` is not yet ignored, so 27 generated Prisma client files were committed and pushed to the public repository. A force-push to remove them was refused by the permission system, so #9 was closed and replaced by a clean pull request. The stale branch `docs/session-log-database` still exists on the remote for the owner to delete.
+
+**Key changes:**
+- New clean branch `docs/session-log-database-clean` with only the session log changed.
+- #9 closed without merging.
+
+**Artifacts:**
+- [E] 27 generated Prisma files, including a 4-file leak of the local home directory path and a binary query engine, were pushed on branch `docs/session-log-database` — fix: owner deletes that remote branch; checked that no database host, password or URL is in the files [critical] [2026-11-15]
+- [D] Never use `git add -A` in this repo; stage named paths only and read `git status` before committing — invalidates never [critical] [2026-11-15]
+- [I] `generated/` is ignored only on branches that include PR #6, so any branch cut from main before #6 merges can pick the files up — invalidates once #6 is merged [high] [2026-11-15]
+
+**Next steps:**
+- Owner to delete remote branch `docs/session-log-database`.
+- Owner to merge #6, then #7, then #8, and the clean session log PR.
+
+### 2026-11-16, Supabase connection route and repo state
+
+**What happened:** The usage limit interrupted the previous turn before the cleanup pull request could be pushed; the push failed with a DNS error. The owner then asked how to reach Supabase on the free plan from an IPv4-only network, and the answer was taken from Supabase's connection and Prisma guides. No repo files changed apart from this entry.
+
+**Key changes:**
+- None in code. Local branch `fix/remove-generated-client` (removes 27 generated files from main) exists but is not pushed.
+
+**Artifacts:**
+- [D] Use Supabase's shared pooler in session mode (port 5432, user `postgres.<project-ref>`) as `DATABASE_URL`; it is IPv4 and on the free plan, and Supabase's Prisma guide uses it for both the app and migrations — invalidates if schema creation through the pooler fails on the first migration [high] [2026-11-16]
+- [I] Supabase's direct connection is IPv6 only on Free and Pro; the IPv4 add-on needs Pro or above; transaction mode (port 6543) has no prepared statements — invalidates if Supabase changes its plans [medium] [2026-11-16]
+- [E] PRs #7 and #8 were merged into their parent branches, not main, because they were stacked; main has no `pnpm db` runner and no database step in CI — fix: reopen that content as pull requests against main [critical] [2026-11-16]
+- [E] 27 generated Prisma files are on main through #9 — fix: push `fix/remove-generated-client` and open its pull request [critical] [2026-11-16]
+- [D] Do not stack pull requests on other feature branches in this repo; base every pull request on main and open them one after another — invalidates if the owner prefers stacks [high] [2026-11-16]
+
+**Next steps:**
+- Owner to swap `DATABASE_URL` for the session pooler string.
+- Push the cleanup branch; reopen the #7 and #8 content against main; rebase this log pull request, which conflicts with #9.
+
+### 2026-11-16, repairing main
+
+**What happened:** The owner approved pushing the cleanup branch and reopening the database work against main. A pull request now removes the generated Prisma files from main, and the database layer that never reached main was rebuilt on main and reopened. This log branch was merged with main to clear its conflict.
+
+**Key changes:**
+- PR #11 `fix/remove-generated-client`: removes 27 generated files (9,965 deleted lines, no hand-written changes).
+- PR #12 `feat/database-layer-main`: the content of #7, now based on main (170 lines). 15 of 15 tests pass, typecheck clean, `prisma validate` passes.
+- PR #10 (this log): merged main in; the conflict was resolved by keeping this branch's log, which contains every line of main's.
+- The content of #8 (CI database step and test) is not reopened yet; it follows once #12 is merged, so nothing is stacked.
+
+**Artifacts:**
+- [D] The #8 content is opened against main only after #12 merges — invalidates if the owner prefers a single larger pull request [medium] [2026-11-16]
+- [I] A new shell in this project starts on Node 18 without pnpm on the path; run `nvm use 22` and add pnpm's bin folder before any check, or tests print nothing and look like a pass — invalidates if the machine's default Node changes [high] [2026-11-16]
+- [E] A deletion-only pull request of generated files (#11) exceeds the 200-line limit — fix: flagged to the owner in the pull request and in chat [medium] [2026-11-16]
+
+**Next steps:**
+- Owner to merge #11, #12 and #10.
+- Then open the CI database pull request against main.
+- Owner to swap `DATABASE_URL` for the Supabase session pooler string, then run the first migration on the development database.
