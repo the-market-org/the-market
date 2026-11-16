@@ -240,3 +240,21 @@
 **Next steps:**
 - Owner to delete remote branch `docs/session-log-database`.
 - Owner to merge #6, then #7, then #8, and the clean session log PR.
+
+### 2026-11-16, Supabase connection route and repo state
+
+**What happened:** The usage limit interrupted the previous turn before the cleanup pull request could be pushed; the push failed with a DNS error. The owner then asked how to reach Supabase on the free plan from an IPv4-only network, and the answer was taken from Supabase's connection and Prisma guides. No repo files changed apart from this entry.
+
+**Key changes:**
+- None in code. Local branch `fix/remove-generated-client` (removes 27 generated files from main) exists but is not pushed.
+
+**Artifacts:**
+- [D] Use Supabase's shared pooler in session mode (port 5432, user `postgres.<project-ref>`) as `DATABASE_URL`; it is IPv4 and on the free plan, and Supabase's Prisma guide uses it for both the app and migrations — invalidates if schema creation through the pooler fails on the first migration [high] [2026-11-16]
+- [I] Supabase's direct connection is IPv6 only on Free and Pro; the IPv4 add-on needs Pro or above; transaction mode (port 6543) has no prepared statements — invalidates if Supabase changes its plans [medium] [2026-11-16]
+- [E] PRs #7 and #8 were merged into their parent branches, not main, because they were stacked; main has no `pnpm db` runner and no database step in CI — fix: reopen that content as pull requests against main [critical] [2026-11-16]
+- [E] 27 generated Prisma files are on main through #9 — fix: push `fix/remove-generated-client` and open its pull request [critical] [2026-11-16]
+- [D] Do not stack pull requests on other feature branches in this repo; base every pull request on main and open them one after another — invalidates if the owner prefers stacks [high] [2026-11-16]
+
+**Next steps:**
+- Owner to swap `DATABASE_URL` for the session pooler string.
+- Push the cleanup branch; reopen the #7 and #8 content against main; rebase this log pull request, which conflicts with #9.
