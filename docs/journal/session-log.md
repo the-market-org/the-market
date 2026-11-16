@@ -420,3 +420,28 @@
 **Next steps:**
 - Owner to review #17, #18 and #20 and answer the open questions in parts 2 and 3.
 - After approval: revise the roadmap, then seed data and the capability registry.
+
+### 2026-11-16, tenancy decided and the build plan written
+
+**What happened:** The owner decided tenancy is one database for everything with one row per tenant, that closed-source parts stay in separate folders of this repository for now, and asked for every tool reference to be removed from pull requests, commits and code. They also asked for a fully detailed diagram and plan that any implementer can follow. The references were removed, design part 3 was updated, and a master build plan plus detailed plans for the first three work packages were opened as pull requests.
+
+**Key changes:**
+- Tool attribution lines removed from the descriptions of pull requests #1 to #20; titles, comments, commits and tracked files were checked and held none.
+- PR #20 (design part 3) updated: a tenancy section, the hosted-store sequence, where closed code lives, decisions and open questions. 178 lines.
+- PR #21: master build plan with the whole-system diagram, repository map, 21 rules and 15 work packages.
+- PR #22, #23, #24: detailed plans for tenancy, seed data and products route, and the capability registry, with exact files, signatures, test cases and commands.
+- All diagrams in the documents and pull request descriptions parse.
+
+**Artifacts:**
+- [D] Owner decision: one database for everything; a `tenant` table with one row per tenant; one running app serves all tenants — invalidates only if the owner changes it [critical] [2026-11-16]
+- [D] Owner decision: closed-source parts (`publisher/`, `agent-service/`) live in separate folders of this repository for now and move out later — invalidates when they are migrated [high] [2026-11-16]
+- [D] Owner decision: no reference to any assistant or tool in pull requests, commits or code — invalidates never [critical] [2026-11-16]
+- [D] Every table carries `tenant_id`, every public service input carries `tenantId`, and only a module's database adapter turns it into a filter — invalidates if row-level security replaces adapter filtering [high] [2026-11-16]
+- [D] The tenant is resolved from the request's host name; unknown hosts get 404 — invalidates if the owner needs path or header based tenants [medium] [2026-11-16]
+- [D] Detailed plans exist for work packages 1 to 3 only; later plans are written when the package before them merges, because their interfaces depend on what was built — invalidates if the owner wants all plans up front [medium] [2026-11-16]
+- [I] This repository is public, so closed code committed to `publisher/` or `agent-service/` is published — invalidates when the repository becomes private [critical] [2026-11-16]
+- [I] `import.meta.main` works on Node 22.23, which the seed script plan relies on — invalidates on a Node below 22.18 [low] [2026-11-16]
+
+**Next steps:**
+- Owner to review and merge #17 to #24.
+- Then implement work package 1, task 1 (tenancy services).
