@@ -258,3 +258,23 @@
 **Next steps:**
 - Owner to swap `DATABASE_URL` for the session pooler string.
 - Push the cleanup branch; reopen the #7 and #8 content against main; rebase this log pull request, which conflicts with #9.
+
+### 2026-11-16, repairing main
+
+**What happened:** The owner approved pushing the cleanup branch and reopening the database work against main. A pull request now removes the generated Prisma files from main, and the database layer that never reached main was rebuilt on main and reopened. This log branch was merged with main to clear its conflict.
+
+**Key changes:**
+- PR #11 `fix/remove-generated-client`: removes 27 generated files (9,965 deleted lines, no hand-written changes).
+- PR #12 `feat/database-layer-main`: the content of #7, now based on main (170 lines). 15 of 15 tests pass, typecheck clean, `prisma validate` passes.
+- PR #10 (this log): merged main in; the conflict was resolved by keeping this branch's log, which contains every line of main's.
+- The content of #8 (CI database step and test) is not reopened yet; it follows once #12 is merged, so nothing is stacked.
+
+**Artifacts:**
+- [D] The #8 content is opened against main only after #12 merges — invalidates if the owner prefers a single larger pull request [medium] [2026-11-16]
+- [I] A new shell in this project starts on Node 18 without pnpm on the path; run `nvm use 22` and add pnpm's bin folder before any check, or tests print nothing and look like a pass — invalidates if the machine's default Node changes [high] [2026-11-16]
+- [E] A deletion-only pull request of generated files (#11) exceeds the 200-line limit — fix: flagged to the owner in the pull request and in chat [medium] [2026-11-16]
+
+**Next steps:**
+- Owner to merge #11, #12 and #10.
+- Then open the CI database pull request against main.
+- Owner to swap `DATABASE_URL` for the Supabase session pooler string, then run the first migration on the development database.
