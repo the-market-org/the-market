@@ -318,3 +318,21 @@
 **Next steps:**
 - Owner to merge both pull requests.
 - Then open the Prisma adapter pull request, followed by seed data and a products API route.
+
+### 2026-11-16, catalog reads and writes PostgreSQL
+
+**What happened:** The owner merged the database-URL wiring and the catalog services. The held Prisma adapter was applied on top of main and opened as a pull request, which completes catalog persistence: the catalog module now stores and lists products in its own PostgreSQL schema instead of memory.
+
+**Key changes:**
+- PR `feat/catalog-prisma-adapter`: `prisma-catalog-database.ts` implements the `CatalogDatabase` port; the module's register function wires it to the services; the database test now goes through the adapter.
+- Verified on this branch: typecheck clean, 16 tests pass, the database test passed against the development database, the real server started and answered `/health`.
+
+**Artifacts:**
+- [I] The catalog module persists through Prisma in schema `catalog`, verified against the development database and by CI's PostgreSQL service — invalidates if the schema or adapter changes [high] [2026-11-16]
+- [I] Constructing a Prisma client does not connect; the server starts and serves `/health` without touching the database until the first query — invalidates if a start-up query is added [low] [2026-11-16]
+- [S] Close each module's database connection on server shutdown through a module `dispose` hook — activates when graceful shutdown is added [low] [2026-11-16]
+
+**Next steps:**
+- Owner to merge this pull request; roadmap PR 4's persistence part is then complete.
+- Then seed data and a products API route, so products are visible over HTTP.
+- Still open: must the store run with no model at all?
