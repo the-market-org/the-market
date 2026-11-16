@@ -397,3 +397,26 @@
 **Next steps:**
 - Owner to say where the CrewAI agent team runs and whether it is open source.
 - Then write the topology into the design as a third part and adjust parts 1 and 2.
+
+### 2026-11-16, topology confirmed and written up
+
+**What happened:** The owner confirmed the agent runs as a separate CrewAI service and is central, and clarified the split: stores created by the publisher run on the business's private infrastructure with Supabase and the business's agent service; self-hosted stores bring their own authentication, database, infrastructure and agent. This was written up as design part 3, and parts 1 and 2 were updated to move the agents and model gateway out of the tenant app.
+
+**Key changes:**
+- PR #20: `docs/architecture/agent-design-part-3-publisher-and-tenant.md` (150 lines, 4 diagrams).
+- PR #17 (part 1) updated: architecture diagram now shows the agent service outside the tenant app and an agent connection inside it; 199 lines.
+- PR #18 (part 2) updated: model gateway placed in the agent service; roadmap shows an agent connection and an example agent in this repository; 169 lines.
+- All 13 diagrams across the three parts parse.
+
+**Artifacts:**
+- [D] Owner decision: the agent is a separate service built with CrewAI, central to the product, run by the closed publisher for hosted stores; a self-hosted store must plug in its own agent — invalidates only if the owner changes it [critical] [2026-11-16]
+- [D] Owner decision: hosted stores use Supabase for database and authentication on the business's private infrastructure; self-hosted stores run their own authentication, database and infrastructure — invalidates only if the owner changes it [critical] [2026-11-16]
+- [D] Proposed, not yet approved: the tenant app depends on six sockets (identity, database, file storage, mail, app authoriser, agent connection) so one codebase serves both cases — invalidates if a hosted feature cannot be expressed through a socket [high] [2026-11-16]
+- [D] Proposed, not yet approved: the agent connection is MCP tools for capabilities, A2A for longer tasks and events for observation; capabilities, change sets, policy and experiments stay in the open-source tenant app — invalidates if CrewAI cannot consume one of the three channels [high] [2026-11-16]
+- [D] Proposed, not yet approved: an example scripted agent in this repository proves the agent connection — invalidates if the owner wants no agent code in the open repository [medium] [2026-11-16]
+- [I] This repository is public, so publisher and agent service internals should be designed in a private repository — invalidates if the owner decides otherwise [high] [2026-11-16]
+- [I] Not verified: how CrewAI connects to MCP servers and A2A agents, and Supabase's limits for one database per tenant — invalidates once checked [medium] [2026-11-16]
+
+**Next steps:**
+- Owner to review #17, #18 and #20 and answer the open questions in parts 2 and 3.
+- After approval: revise the roadmap, then seed data and the capability registry.
