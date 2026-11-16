@@ -9,12 +9,12 @@ import {
   resolveService,
 } from "@the-market/core";
 import type { ModuleContext } from "@the-market/core";
-import { catalogModule } from "./index.ts";
 
 function buildTestContext(eventBus: ReturnType<typeof buildEventBus>) {
   return (input: { moduleName: string; schemaName: string }): ModuleContext => ({
     moduleName: input.moduleName,
     schemaName: input.schemaName,
+    databaseUrl: "postgresql://unused",
     publishEvent: eventBus.publishEvent,
     subscribeEvent: eventBus.subscribeEvent,
   });
@@ -23,6 +23,16 @@ function buildTestContext(eventBus: ReturnType<typeof buildEventBus>) {
 test("loads modules in dependency order and exposes their services", async () => {
   const eventBus = buildEventBus();
   const seenEvents: unknown[] = [];
+  const catalogModule = defineModule({
+    name: "catalog",
+    version: "0.0.0",
+    schemaName: "catalog",
+    dependsOn: [],
+    register: (context) => ({
+      addProduct: (product: { productId: string }) =>
+        context.publishEvent("catalog.product.created", { productId: product.productId }),
+    }),
+  });
   const searchModule = defineModule({
     name: "search",
     version: "0.0.0",
