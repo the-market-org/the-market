@@ -1,7 +1,7 @@
 # Central agent design — part 2: optimiser, models, safety
 
 Date: 2026-11-16. Status: **draft for owner review. Nothing here is built.**
-Part 1 covers the position, capabilities, the builder and change sets.
+Part 1 covers the position, capabilities, the builder and change sets. Part 3 covers the publisher, the tenant app and the separate agent service.
 
 ## 1. The optimiser
 
@@ -29,6 +29,7 @@ flowchart LR
 
 Rules:
 
+- Experiments, visitor assignment and the statistics run in the tenant app. Findings and hypotheses come from the agent service.
 - A variant is a change set (part 1), so it can be previewed and reverted like any other change.
 - Visitors are assigned by a stable anonymous key, so one visitor always sees the same variant.
 - Every experiment has one goal metric and at least one guardrail metric.
@@ -37,7 +38,7 @@ Rules:
 
 ## 2. Model gateway
 
-One component talks to the model provider, so the rest of the system never depends on a vendor.
+The model gateway lives inside the agent service, not in the open-source tenant app (part 3). For hosted stores that is the business's CrewAI service. A self-hosted owner's agent makes its own choices; this section is a reference design.
 
 ```mermaid
 flowchart LR
@@ -94,7 +95,7 @@ Per task: a cap on steps, on model spend and on the number of change items. Per 
 
 ## 4. Data model
 
-All in the `agent` schema, owned by the agent module. Outline only.
+Change sets, findings and experiments live in the tenant app, in the `agent` schema. Runs, steps and model calls belong to whichever agent service is connected and are shown for completeness. Outline only.
 
 ```mermaid
 erDiagram
@@ -148,21 +149,21 @@ flowchart LR
     A[Seed data and<br/>products route] --> B[Capability registry<br/>first catalog capabilities]
     B --> C[Change sets:<br/>draft, apply, revert]
     C --> D[Store as data:<br/>pages from sections]
-    D --> E[Model gateway<br/>on OpenRouter]
-    E --> F[Builder v0:<br/>a store from a sentence]
+    D --> E[Agent connection:<br/>MCP, A2A, events]
+    E --> F[Example agent proves<br/>the connection]
     C --> G[Cart, checkout,<br/>fake payment gateway]
     F --> H[Telemetry and<br/>experiments]
     G --> H
-    H --> I[Optimiser v0]
+    H --> I[Agent service builds and optimises:<br/>separate private repository]
     D --> J[Apps and slots]
 ```
 
-Compared with the approved roadmap: capabilities and change sets come before the storefront grows, so every later feature is built agent-first. Checkout and apps keep their place.
+Compared with the approved roadmap: capabilities and change sets come before the storefront grows, so every later feature is built agent-first. This repository builds the agent connection and a small example agent; the CrewAI builder and optimiser are built in the agent service. Checkout and apps keep their place.
 
 ## 6. Open questions for the owner
 
 1. **Generated code.** Should the builder ever write new section code? If yes, it needs a sandbox and a code review step. My recommendation: not in the first version.
 2. **Conversation surface.** Is the merchant's main screen a conversation with a preview beside it, with classic admin screens secondary?
 3. **Default autonomy.** Everything needs approval at first, as drafted, or should low-risk changes be automatic from day one?
-4. **Budget.** Who pays for model usage on self-hosted stores: the merchant's own OpenRouter key, as drafted?
+4. **Budget.** Answered 2026-11-16: hosted stores use the business's agent service; a self-hosted owner plugs in, and pays for, their own agent.
 5. **Shopper-facing agent.** This draft covers the merchant side only. Is a shopping assistant for customers in scope later?
