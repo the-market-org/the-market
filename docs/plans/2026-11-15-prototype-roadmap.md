@@ -1,6 +1,6 @@
 # Prototype roadmap
 
-Date: 2026-11-15. Status: **proposed, waiting for owner approval.** Nothing in this file has been built.
+Date: 2026-11-15. Status: **superseded by `2026-11-16-build-plan-master.md`.** Kept for history.
 
 This is a roadmap at pull-request level. Each PR gets its own detailed plan, with its own diagram, just before it is built.
 
