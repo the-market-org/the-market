@@ -107,11 +107,7 @@ Illustration only, not compiled:
 defineCapability({
   name: "catalog.product.rename",
   summary: "Change a product's title",
-  inputSchema: {
-    type: "object",
-    properties: { productId: { type: "string" }, title: { type: "string" } },
-    required: ["productId", "title"],
-  },
+  inputSchema: productRenameSchema, // JSON Schema: productId and title, both required
   risk: "low", // low | medium | high
   buildChange, // works out the change and how to undo it; writes nothing
   applyChange, // performs it, inside a workflow
@@ -158,9 +154,7 @@ sequenceDiagram
     CS->>SF: Apply through workflows
 ```
 
-What the builder can do in the first version: create collections and navigation, compose pages from existing sections, write and edit copy, set theme settings, bind apps to slots, import a product list.
-
-What it cannot do in the first version: write new section code. Generated code that runs on the server is a different risk class and is an open question in part 2.
+In the first version the builder can create collections and navigation, compose pages from existing sections, write and edit copy, set theme settings, bind apps to slots and import a product list. It cannot write new section code: generated code that runs on the server is a different risk class and is an open question in part 2.
 
 ## 6. Change sets
 
