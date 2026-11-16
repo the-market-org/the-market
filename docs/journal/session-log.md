@@ -379,3 +379,21 @@
 **Next steps:**
 - Owner to review #17 and #18 and answer the five open questions in part 2.
 - After approval: revise the roadmap, then build seed data and the capability registry.
+
+### 2026-11-16, publisher and tenant topology proposed by the owner
+
+**What happened:** The owner shared a diagram that adds a new layer to the project: a closed-source "publisher wrapper" that creates and hosts tenant stores, around the open-source tenant app. The diagram was played back and four points that change the current design were raised. Nothing was written into the design documents yet, because one of those points decides the architecture.
+
+**Key changes:**
+- None in code or design documents. This entry only.
+
+**Artifacts:**
+- [D] Owner direction: two products. A closed-source publisher wrapper creates tenant stores and assigns each a PostgreSQL database, storage, merchant access, domains and email, and access to the agent app over A2A, MCP and events. The tenant app is open source — invalidates only if the owner changes it [critical] [2026-11-16]
+- [D] Owner direction: the tenant app authenticates with Supabase authentication, and connected apps are authorised through the publisher wrapper — invalidates only if the owner changes it [high] [2026-11-16]
+- [D] Owner direction: a team of agents built with CrewAI helps merchants improve their store, as a plugin — open point: CrewAI is a Python framework and the tenant app is TypeScript, so where the agent team runs is undecided [critical] [2026-11-16]
+- [I] MCP is a new integration surface next to A2A; capabilities could be exposed as MCP tools with little extra design — invalidates if the owner wants MCP for something else [medium] [2026-11-16]
+- [I] "Plugin" for the agent team and "the model is central" need reconciling; a separate agent service that is the default but replaceable fits both — invalidates if the owner means something else by plugin [high] [2026-11-16]
+
+**Next steps:**
+- Owner to say where the CrewAI agent team runs and whether it is open source.
+- Then write the topology into the design as a third part and adjust parts 1 and 2.
