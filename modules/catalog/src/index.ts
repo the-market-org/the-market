@@ -1,27 +1,17 @@
 import { defineModule } from "@the-market/core";
 import type { ModuleContext, ServiceMap } from "@the-market/core";
+import { addProduct, buildCatalogServices } from "./catalog-services.ts";
+import { buildCatalogDatabase, summariseProduct } from "./prisma-catalog-database.ts";
 
-interface ProductSummary {
-  productId: string;
-  title: string;
-  priceMinor: number;
-  currencyCode: string;
-}
+export type { NewProduct, ProductSummary } from "./catalog-services.ts";
 
 /**
- * Registers the catalog services.
- * The prototype keeps products in memory; the real module reads its own
- * "catalog" PostgreSQL schema and nothing else.
+ * Composition root of the catalog module: connects the services to the
+ * module's own "catalog" PostgreSQL schema and nothing else.
  */
 export function registerCatalog(context: ModuleContext): ServiceMap {
-  const products: ProductSummary[] = [];
-  return {
-    listProducts: async (): Promise<ProductSummary[]> => [...products],
-    addProduct: async (product: ProductSummary): Promise<void> => {
-      products.push(product);
-      await context.publishEvent("catalog.product.created", { productId: product.productId });
-    },
-  };
+  const database = buildCatalogDatabase({ databaseUrl: context.databaseUrl, summarise: summariseProduct });
+  return buildCatalogServices({ database, publishEvent: context.publishEvent, addOne: addProduct });
 }
 
 export const catalogModule = defineModule({
