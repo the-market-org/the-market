@@ -1,0 +1,45 @@
+// The orders module's own schema. Run Prisma through `pnpm db orders ...`,
+// which points MODULE_DATABASE_URL at the "orders" PostgreSQL schema.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("MODULE_DATABASE_URL")
+}
+
+/// One order. Its number counts per store, so a store never sees another's volume.
+model Order {
+  orderId           String      @id @default(uuid()) @map("order_id") @db.Uuid
+  tenantId          String      @map("tenant_id") @db.Uuid
+  orderNumber       Int         @map("order_number")
+  status            String      @default("pending") // pending | paid | canceled
+  currencyCode      String      @map("currency_code")
+  totalMinor        Int         @map("total_minor")
+  paymentProviderId String      @default("") @map("payment_provider_id")
+  paymentReference  String      @default("") @map("payment_reference")
+  placedAt          DateTime    @default(now()) @map("placed_at") @db.Timestamptz
+  lines             OrderLine[]
+
+  @@unique([tenantId, orderNumber])
+  @@index([tenantId])
+  @@map("orders")
+}
+
+/// One product bought, with its title and price as they were at checkout.
+model OrderLine {
+  lineId         String @id @default(uuid()) @map("line_id") @db.Uuid
+  tenantId       String @map("tenant_id") @db.Uuid
+  orderId        String @map("order_id") @db.Uuid
+  productId      String @map("product_id") @db.Uuid
+  titleSnapshot  String @map("title_snapshot")
+  quantity       Int
+  unitPriceMinor Int    @map("unit_price_minor")
+  order          Order  @relation(fields: [orderId], references: [orderId])
+
+  @@index([tenantId])
+  @@map("order_lines")
+}
