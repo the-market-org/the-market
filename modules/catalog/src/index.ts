@@ -1,5 +1,6 @@
 import { defineModule } from "@the-market/core";
 import type { ModuleContext, ServiceMap } from "@the-market/core";
+import { buildRenameCapability, listCatalogCapabilities } from "./catalog-capabilities.ts";
 import { addProduct, buildCatalogServices, renameProduct } from "./catalog-services.ts";
 import { buildCatalogDatabase, summariseProduct } from "./prisma-catalog-database.ts";
 
@@ -21,4 +22,6 @@ export const catalogModule = defineModule({
   schemaName: "catalog",
   dependsOn: [],
   register: registerCatalog,
+  listCapabilities: (request) =>
+    listCatalogCapabilities({ services: request.services, buildRename: buildRenameCapability }),
 });
