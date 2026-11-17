@@ -1,6 +1,7 @@
 /**
  * The only file in this module that touches Prisma. It implements the
  * CatalogDatabase port, so storage can be replaced here alone.
+ * It is also the only place that turns a tenant id into a query filter.
  */
 import type { CatalogDatabase, ProductSummary } from "./catalog-services.ts";
 import { PrismaClient } from "./generated/client/index.js";
@@ -32,18 +33,24 @@ export function buildCatalogDatabase(input: {
 }): CatalogDatabase & { disconnect: () => Promise<void> } {
   const client = new PrismaClient({ datasourceUrl: input.databaseUrl });
   return {
-    findProducts: async () => {
-      const records = await client.product.findMany({ include: { variants: true }, orderBy: { title: "asc" } });
+    findProducts: async (query) => {
+      const records = await client.product.findMany({
+        where: { tenantId: query.tenantId },
+        include: { variants: true },
+        orderBy: { title: "asc" },
+      });
       return records.map((record) => input.summarise(record));
     },
     insertProduct: async (product) => {
       const record = await client.product.create({
         data: {
+          tenantId: product.tenantId,
           handle: product.handle,
           title: product.title,
           status: "active",
           variants: {
             create: {
+              tenantId: product.tenantId,
               sku: product.sku,
               title: "Default",
               priceMinor: product.priceMinor,

@@ -11,6 +11,8 @@ export interface ProductSummary {
 }
 
 export interface NewProduct {
+  /** The store the product belongs to. Every catalog row carries it. */
+  tenantId: string;
   handle: string;
   title: string;
   sku: string;
@@ -20,7 +22,8 @@ export interface NewProduct {
 
 /** What the services need from storage. The Prisma adapter implements it. */
 export interface CatalogDatabase {
-  findProducts: () => Promise<ProductSummary[]>;
+  /** Returns one tenant's products only. */
+  findProducts: (input: { tenantId: string }) => Promise<ProductSummary[]>;
   insertProduct: (product: NewProduct) => Promise<ProductSummary>;
 }
 
@@ -28,6 +31,7 @@ type PublishEvent = (eventName: string, payload: unknown) => Promise<void>;
 
 /** Stores a product, then tells the rest of the system it exists. */
 export async function addProduct(input: {
+  tenantId: string;
   handle: string;
   title: string;
   sku: string;
@@ -37,13 +41,17 @@ export async function addProduct(input: {
   publishEvent: PublishEvent;
 }): Promise<ProductSummary> {
   const product = await input.insertProduct({
+    tenantId: input.tenantId,
     handle: input.handle,
     title: input.title,
     sku: input.sku,
     priceMinor: input.priceMinor,
     currencyCode: input.currencyCode,
   });
-  await input.publishEvent("catalog.product.created", { productId: product.productId });
+  await input.publishEvent("catalog.product.created", {
+    tenantId: input.tenantId,
+    productId: product.productId,
+  });
   return product;
 }
 
@@ -54,7 +62,7 @@ export function buildCatalogServices(input: {
   addOne: typeof addProduct;
 }): ServiceMap {
   return {
-    listProducts: () => input.database.findProducts(),
+    listProducts: (request: { tenantId: string }) => input.database.findProducts({ tenantId: request.tenantId }),
     addProduct: (product: NewProduct) =>
       input.addOne({
         ...product,
