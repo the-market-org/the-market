@@ -237,6 +237,9 @@ importers:
       '@the-market/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@the-market/theme-engine':
+        specifier: workspace:*
+        version: link:../../packages/theme-engine
     devDependencies:
       prisma:
         specifier: 6.19.3

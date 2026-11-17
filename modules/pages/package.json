@@ -3,7 +3,15 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "exports": { ".": "./src/index.ts" },
-  "dependencies": { "@prisma/client": "6.19.3", "@the-market/core": "workspace:*" },
-  "devDependencies": { "prisma": "6.19.3" }
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "6.19.3",
+    "@the-market/core": "workspace:*",
+    "@the-market/theme-engine": "workspace:*"
+  },
+  "devDependencies": {
+    "prisma": "6.19.3"
+  }
 }
