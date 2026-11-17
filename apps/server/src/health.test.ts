@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { composeServer } from "./compose.ts";
 
-const fakeRegistry = { tenancy: { resolveTenant: async () => undefined }, catalog: {} };
+const fakeRegistry = { tenancy: { resolveTenant: async () => undefined }, catalog: { listProducts: async () => [] } };
 
 test("GET /health reports the loaded modules", async () => {
   const app = await composeServer({ readUptime: () => 12.4, registry: fakeRegistry });
