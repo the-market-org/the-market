@@ -217,6 +217,9 @@ importers:
       '@the-market/module-tenancy':
         specifier: workspace:*
         version: link:../../modules/tenancy
+      '@the-market/payment':
+        specifier: workspace:*
+        version: link:../../packages/payment
       '@the-market/sockets':
         specifier: workspace:*
         version: link:../../packages/sockets
