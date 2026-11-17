@@ -556,3 +556,22 @@
 **Next steps:**
 - Owner to merge #30.
 - Then work package 2, task 1: seed functions.
+
+### 2026-11-17, work package 2 task 1: seed functions
+
+**What happened:** #30 was confirmed merged, which completes work package 1. Work package 2 started with task 1: idempotent seed functions for the six demo products, and an `ensureTenant` service that returns the tenant for a host or creates it once.
+
+**Key changes:**
+- `modules/catalog/src/seed-products.ts`: `SEED_PRODUCTS` (six fixed rows, prices in pence, GBP) and `seedCatalog`, which adds only the products whose handle is missing.
+- `modules/tenancy/src/tenancy-services.ts`: `ensureTenant`, also exposed as a service.
+- `modules/tenancy/src/index.ts`: passes `ensureTenant` in. The plan did not list this file; it changes because `buildTenancyServices` receives the new function instead of calling it directly.
+- Checks: typecheck clean; 29 tests pass, 2 database tests skipped locally; both database tests pass on the development database.
+
+**Artifacts:**
+- [I] Work package 1 is complete on main: tenants, host resolution and per-tenant catalog (#25, #26, #28, #30) — invalidates never [high] [2026-11-17]
+- [D] Seeding matches existing products by handle, so a merchant's own product with a demo handle is left alone — invalidates if seeding must also update prices [medium] [2026-11-17]
+- [D] `ensureTenant` matches by host name, not slug — invalidates if a tenant's host can change [low] [2026-11-17]
+
+**Next steps:**
+- Owner to merge this pull request.
+- Then task 2: the `pnpm seed` command.
