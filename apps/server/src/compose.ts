@@ -12,6 +12,7 @@ import { handleHealth } from "./health-handler.ts";
 import { answerWithRoute, mountRoutes } from "./hono-adapter.ts";
 import { guardMerchantRoutes, isMerchantOf, matchesMerchant, matchesMerchantToken, readBearerToken } from "./merchant-token.ts";
 import { handleListProducts } from "./products-handler.ts";
+import { composeStorefrontRoutes } from "./storefront/compose-storefront.ts";
 import type { Route } from "./hono-adapter.ts";
 
 type ResolveTenantService = (input: { host: string }) => Promise<string | undefined>;
@@ -74,6 +75,7 @@ export async function composeServer(input: {
     app: new Hono(),
     routes: [
       ...routes,
+      ...composeStorefrontRoutes({ registry: input.registry }),
       ...guardMerchantRoutes({ routes: merchantRoutes, enabled: merchantEnabled, matches: matchesRequest }),
     ],
     answerRoute: answerWithRoute,

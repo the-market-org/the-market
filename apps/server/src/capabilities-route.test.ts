@@ -16,8 +16,9 @@ function buildCapability(name: string): CapabilityDefinition {
 }
 
 const fakeRegistry = {
-  tenancy: { resolveTenant: async () => undefined },
+  tenancy: { resolveTenant: async () => undefined, findTenant: async () => undefined },
   catalog: { listProducts: async () => [] },
+  pages: { findPage: async () => undefined },
 };
 
 test("GET /api/capabilities lists each capability's public fields, sorted by name", async () => {

@@ -11,6 +11,7 @@
     "@the-market/module-pages": "workspace:*",
     "@the-market/module-tenancy": "workspace:*",
     "@the-market/sockets": "workspace:*",
+    "@the-market/theme-engine": "workspace:*",
     "hono": "4.13.18"
   }
 }

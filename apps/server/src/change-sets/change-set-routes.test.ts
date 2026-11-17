@@ -26,8 +26,9 @@ function buildRegistry() {
   const findStored = (query: { tenantId: string; changeSetId: string }) =>
     stored.find((changeSet) => changeSet.tenantId === query.tenantId && changeSet.changeSetId === query.changeSetId);
   return {
-    tenancy: { resolveTenant: async (request: { host: string }) => ({ "shop-a.example": "tenant-a", "shop-b.example": "tenant-b" })[request.host] },
+    tenancy: { resolveTenant: async (request: { host: string }) => ({ "shop-a.example": "tenant-a", "shop-b.example": "tenant-b" })[request.host], findTenant: async () => undefined },
     catalog: { listProducts: async () => [] },
+    pages: { findPage: async () => undefined },
     changes: {
       createChangeSet: async (request: { tenantId: string; title: string; proposedBy: string }) => {
         const record = { ...request, changeSetId: `set_${stored.length + 1}`, state: "draft", approvedBy: "", failureReason: "", items: [] };
