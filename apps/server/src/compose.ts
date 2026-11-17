@@ -1,10 +1,11 @@
 /**
  * Composition root of the server: wires the routes to the loaded modules.
- * It takes the module registry as input, so tests can pass a fake one.
+ * It takes the module registry and capabilities as input, so tests can pass fakes.
  */
 import { resolveService } from "@the-market/core";
-import type { ModuleRegistry } from "@the-market/core";
+import type { CapabilityRegistry, ModuleRegistry } from "@the-market/core";
 import { Hono } from "hono";
+import { handleListCapabilities } from "./capabilities-handler.ts";
 import { handleHealth } from "./health-handler.ts";
 import { answerWithRoute, mountRoutes } from "./hono-adapter.ts";
 import { handleListProducts } from "./products-handler.ts";
@@ -16,6 +17,7 @@ type ListProductsService = (input: { tenantId: string }) => Promise<unknown[]>;
 export async function composeServer(input: {
   readUptime: () => number;
   registry: ModuleRegistry;
+  capabilities: CapabilityRegistry;
 }): Promise<Hono> {
   const resolveTenantService = resolveService({
     registry: input.registry,
@@ -41,6 +43,12 @@ export async function composeServer(input: {
       tenantScoped: true,
       handleRequest: (request) =>
         handleListProducts({ tenantId: request.tenantId, listProducts: listProductsService }),
+    },
+    {
+      method: "GET",
+      path: "/api/capabilities",
+      tenantScoped: false,
+      handleRequest: () => handleListCapabilities({ capabilities: input.capabilities }),
     },
   ];
   return mountRoutes({
