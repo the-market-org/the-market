@@ -62,6 +62,20 @@ export function buildCatalogDatabase(input: {
       });
       return input.summarise(record);
     },
+    findProductById: async (query) => {
+      const records = await client.product.findMany({
+        where: { tenantId: query.tenantId, productId: query.productId },
+        include: { variants: true },
+      });
+      return records.map((record) => input.summarise(record))[0];
+    },
+    updateProductTitle: async (change) => {
+      const result = await client.product.updateMany({
+        where: { tenantId: change.tenantId, productId: change.productId },
+        data: { title: change.title },
+      });
+      return result.count;
+    },
     disconnect: () => client.$disconnect(),
   };
 }

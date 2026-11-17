@@ -35,3 +35,32 @@ test("two tenants can share a handle and SKU and each sees only its own product"
     await Promise.all([client.$disconnect(), database.disconnect()]);
   }
 });
+
+test("renaming with another tenant's id changes no row and leaves the title", { skip: databaseUrl === undefined }, async () => {
+  const moduleUrl = buildModuleDatabaseUrl({ databaseUrl: String(databaseUrl), schemaName: "catalog" });
+  const database = buildCatalogDatabase({ databaseUrl: moduleUrl, summarise: summariseProduct });
+  const client = new PrismaClient({ datasourceUrl: moduleUrl });
+  const tenantA = randomUUID();
+  const tenantB = randomUUID();
+  try {
+    const productA = await database.insertProduct({
+      tenantId: tenantA,
+      handle: "rope-lead",
+      title: "Lead A",
+      sku: "LEAD-ROPE",
+      priceMinor: 1800,
+      currencyCode: "GBP",
+    });
+
+    assert.equal(await database.updateProductTitle({ tenantId: tenantB, productId: productA.productId, title: "Taken" }), 0);
+    assert.equal(await database.findProductById({ tenantId: tenantB, productId: productA.productId }), undefined);
+    assert.equal((await database.findProductById({ tenantId: tenantA, productId: productA.productId }))?.title, "Lead A");
+
+    assert.equal(await database.updateProductTitle({ tenantId: tenantA, productId: productA.productId, title: "Lead B" }), 1);
+    assert.equal((await database.findProductById({ tenantId: tenantA, productId: productA.productId }))?.title, "Lead B");
+  } finally {
+    await client.variant.deleteMany({ where: { tenantId: { in: [tenantA, tenantB] } } });
+    await client.product.deleteMany({ where: { tenantId: { in: [tenantA, tenantB] } } });
+    await Promise.all([client.$disconnect(), database.disconnect()]);
+  }
+});
