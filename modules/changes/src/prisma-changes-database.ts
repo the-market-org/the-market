@@ -47,6 +47,13 @@ export function buildStateData(input: { toState: string; approvedBy: string; fai
   };
 }
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** True for a UUID. Anything else cannot be a stored id, so it is treated as not found without a query. */
+export function isWellFormedId(text: string): boolean {
+  return UUID_PATTERN.test(text);
+}
+
 const ITEMS_IN_ORDER = { items: { orderBy: { position: "asc" } } } as const;
 
 export function buildChangesDatabase(input: { databaseUrl: string }): ChangesDatabase & {
@@ -57,10 +64,12 @@ export function buildChangesDatabase(input: { databaseUrl: string }): ChangesDat
     insertChangeSet: async (changeSet) =>
       describeChangeSet(await client.changeSet.create({ data: changeSet, include: ITEMS_IN_ORDER })),
     findChangeSet: async (query) => {
-      const records = await client.changeSet.findMany({
-        where: { tenantId: query.tenantId, changeSetId: query.changeSetId },
-        include: ITEMS_IN_ORDER,
-      });
+      const records = isWellFormedId(query.changeSetId)
+        ? await client.changeSet.findMany({
+            where: { tenantId: query.tenantId, changeSetId: query.changeSetId },
+            include: ITEMS_IN_ORDER,
+          })
+        : [];
       return records.map(describeChangeSet)[0];
     },
     insertChangeItem: (item) =>
@@ -78,10 +87,12 @@ export function buildChangesDatabase(input: { databaseUrl: string }): ChangesDat
         });
       }),
     updateState: async (move) => {
-      const result = await client.changeSet.updateMany({
-        where: { tenantId: move.tenantId, changeSetId: move.changeSetId, state: move.fromState },
-        data: buildStateData(move),
-      });
+      const result = isWellFormedId(move.changeSetId)
+        ? await client.changeSet.updateMany({
+            where: { tenantId: move.tenantId, changeSetId: move.changeSetId, state: move.fromState },
+            data: buildStateData(move),
+          })
+        : { count: 0 };
       return result.count;
     },
     disconnect: () => client.$disconnect(),
