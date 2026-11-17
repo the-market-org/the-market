@@ -181,6 +181,9 @@ importers:
       '@hono/node-server':
         specifier: 2.1.8
         version: 2.1.8(hono@4.13.18)
+      '@the-market/a2a-gateway':
+        specifier: workspace:*
+        version: link:../../packages/a2a-gateway
       '@the-market/core':
         specifier: workspace:*
         version: link:../../packages/core
