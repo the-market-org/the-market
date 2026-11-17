@@ -25,6 +25,7 @@ const app = await composeServer({
   merchantToken,
   identity: sockets.identity,
   identityEnabled: sockets.identityEnabled,
+  allowLocalHttp: process.env.NODE_ENV !== "production",
 });
 
 serve({ fetch: app.fetch, port }, (address) => {

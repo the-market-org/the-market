@@ -24,6 +24,7 @@ const registry = {
     findPage: async (request: { pageKey: string }) =>
       request.pageKey === "home" ? [{ sectionType: "hero", settings: { heading: "Live heading" } }] : undefined,
   },
+  connections: { saveConnection: async () => ({ signingSecret: "" }), findConnection: async () => undefined, removeConnection: async () => {} },
   changes: {
     createChangeSet: async () => draft,
     findChangeSet: async (request: { tenantId: string; changeSetId: string }) => (request.tenantId === draft.tenantId ? draft : undefined),

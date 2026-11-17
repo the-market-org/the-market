@@ -26,6 +26,7 @@ function buildRegistry() {
     tenancy: { resolveTenant: async () => "tenant-a", findTenant: async () => ({ name: "Shop A" }) },
     catalog: { listProducts: async () => [{ handle: "rope-lead", title: "Lead" }] },
     pages: { findPage: async () => undefined },
+    connections: { saveConnection: async () => ({ signingSecret: "" }), findConnection: async () => undefined, removeConnection: async () => {} },
     changes: {
       createChangeSet: async (request: { tenantId: string; title: string; proposedBy: string }) => {
         const changeSet = { ...request, changeSetId: `set_${changeSets.length + 1}`, state: "draft", items: [] };

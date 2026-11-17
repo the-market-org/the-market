@@ -19,7 +19,7 @@ export interface RouteRequest {
 }
 
 export interface Route {
-  method: "GET" | "POST";
+  method: "GET" | "POST" | "PUT" | "DELETE";
   path: string;
   /** When true, the request's host must belong to a tenant or the reply is 404. */
   tenantScoped: boolean;
