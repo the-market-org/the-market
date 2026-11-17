@@ -1,7 +1,7 @@
 /**
  * Checks a capability's candidate input against the small JSON Schema subset
  * capabilities use: top-level `required` and `properties` with a `type` of
- * "string", "number" or "boolean". Unknown extra fields are allowed.
+ * "string", "number", "boolean", "array" or "object". Unknown extra fields are allowed.
  */
 
 /** One field the schema mentions, reduced to plain values. */
@@ -35,14 +35,26 @@ export function describeMissingField(input: { fieldName: string; isRequired: boo
   return input.isRequired ? `Missing field: ${input.fieldName}` : undefined;
 }
 
-/** The problem with a present field whose type differs from the schema's. */
+/** How each supported type is checked, and how it is named in a problem. */
+const TYPE_CHECKS: ReadonlyMap<string, { matches: (value: unknown) => boolean; described: string }> = new Map([
+  ["string", { matches: (value: unknown) => typeof value === "string", described: "a string" }],
+  ["number", { matches: (value: unknown) => typeof value === "number", described: "a number" }],
+  ["boolean", { matches: (value: unknown) => typeof value === "boolean", described: "a boolean" }],
+  ["array", { matches: (value: unknown) => Array.isArray(value), described: "an array" }],
+  ["object", { matches: (value: unknown) => isPlainObject(value), described: "an object" }],
+]);
+
+/** The problem with a present field whose type differs from the schema's. A field with no type accepts anything. */
 export function describeWrongType(input: {
   fieldName: string;
   expectedType: string | undefined;
   fieldValue: unknown;
 }): string | undefined {
-  const typeMatches = input.expectedType === undefined || typeof input.fieldValue === input.expectedType;
-  return typeMatches ? undefined : `Field ${input.fieldName} must be a ${input.expectedType}`;
+  const typeCheck = TYPE_CHECKS.get(String(input.expectedType)) ?? {
+    matches: () => input.expectedType === undefined,
+    described: `a ${input.expectedType}`,
+  };
+  return typeCheck.matches(input.fieldValue) ? undefined : `Field ${input.fieldName} must be ${typeCheck.described}`;
 }
 
 /** The problem with one field, if any. */
