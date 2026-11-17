@@ -3,6 +3,7 @@ import { serve } from "@hono/node-server";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { composeModules } from "./compose-modules.ts";
 import { composeSockets } from "./compose-sockets.ts";
+import { composeEventDelivery, postWithFetch } from "./events/compose-events.ts";
 import { composeServer } from "./compose.ts";
 
 const port = Number(process.env.PORT ?? 3000);
@@ -10,7 +11,8 @@ const databaseUrl = process.env.DATABASE_URL;
 if (databaseUrl === undefined) {
   throw new Error("DATABASE_URL is not set. Add it to .env in the repository root.");
 }
-const { registry, capabilities } = await composeModules({ databaseUrl });
+const { registry, capabilities, subscribeEvent } = await composeModules({ databaseUrl });
+composeEventDelivery({ registry, subscribeEvent, post: postWithFetch, readNow: Date.now, writeLine: (line) => console.log(line) });
 const merchantToken = process.env.MERCHANT_TOKEN ?? "";
 const sockets = composeSockets({
   environment: process.env,
