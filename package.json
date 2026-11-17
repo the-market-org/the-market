@@ -9,7 +9,8 @@
     "generate": "pnpm --filter \"./modules/*\" exec prisma generate --schema prisma/schema.prisma",
     "dev": "node --env-file-if-exists=.env --watch apps/server/src/main.ts",
     "typecheck": "pnpm generate && tsc --noEmit -p tsconfig.json",
-    "test": "pnpm generate && node --test \"packages/**/*.test.ts\" \"modules/**/*.test.ts\" \"apps/**/*.test.ts\""
+    "test": "pnpm generate && node --test \"packages/**/*.test.ts\" \"modules/**/*.test.ts\" \"apps/**/*.test.ts\" \"scripts/**/*.test.ts\"",
+    "seed": "node --env-file-if-exists=.env scripts/seed.ts"
   },
   "devDependencies": {
     "@the-market/core": "workspace:*",
