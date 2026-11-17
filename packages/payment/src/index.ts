@@ -9,4 +9,5 @@ export type {
 } from "./payment-provider.ts";
 export { composeStripeProvider } from "./compose.ts";
 export { addProvider, resolveProvider } from "./payment-provider.ts";
+export { buildFakeProvider } from "./fake-provider.ts";
 export { buildPaypalProvider } from "./paypal-provider.ts";
