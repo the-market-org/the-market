@@ -12,6 +12,8 @@ export interface RouteRequest {
   pathParams: Record<string, string>;
   queryValues: Record<string, string>;
   bodyText: string;
+  /** The Authorization header, or "" when absent. */
+  authorization: string;
 }
 
 export interface Route {
@@ -29,12 +31,18 @@ export function readHost(context: Context): string {
   return context.req.header("host") ?? new URL(context.req.url).host;
 }
 
+/** Reads the Authorization header, or "" when absent. */
+export function readAuthorization(context: Context): string {
+  return context.req.header("authorization") ?? "";
+}
+
 /** Resolves the tenant, turns the request into plain values, runs the handler. */
 export async function answerWithRoute(input: {
   context: Context;
   route: Route;
   resolveTenant: ResolveTenant;
   readRequestHost: (context: Context) => string;
+  readRequestAuthorization: (context: Context) => string;
 }): Promise<Response> {
   const tenantId = input.route.tenantScoped
     ? await input.resolveTenant(input.readRequestHost(input.context))
@@ -47,6 +55,7 @@ export async function answerWithRoute(input: {
     pathParams: input.context.req.param(),
     queryValues: input.context.req.query(),
     bodyText: await input.context.req.text(),
+    authorization: input.readRequestAuthorization(input.context),
   });
   return input.context.body(reply.bodyText, reply.status as ContentfulStatusCode, reply.headers);
 }
@@ -65,6 +74,7 @@ export function mountRoutes(input: {
         route,
         resolveTenant: input.resolveTenant,
         readRequestHost: readHost,
+        readRequestAuthorization: readAuthorization,
       }),
     );
   }
