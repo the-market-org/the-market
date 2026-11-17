@@ -521,3 +521,21 @@
 **Next steps:**
 - Owner to merge #26.
 - Then move task 3 onto main and open its pull request.
+
+### 2026-11-17, work package 1 task 4 opened; #28 and #29 merged
+
+**What happened:** Task 4, catalog scoped by tenant, was built, verified on the development database and opened as #30. While it was being built, #28 (tenant resolution) and #29 (conflict-marker removal) were merged, and #30 still merges cleanly on top of them. The full entries for this work are in `2026-11-16-task-3-opened.md` and `2026-11-17-catalog-tenant-scope.md` in this folder.
+
+**Key changes:**
+- #30: `tenant_id` on catalog products and variants, per-tenant uniqueness, tenant-aware services and adapter, two-tenant database test.
+- The development database has migration `20261116010000_add_tenant_id` applied.
+- `session-log.md` on main no longer holds conflict markers.
+
+**Artifacts:**
+- [I] Work package 1 is complete once #30 merges: tenants exist, the server resolves them, and the catalog is isolated per tenant — invalidates if #30 is not merged [high] [2026-11-17]
+- [E] Earlier log entries were written only as separate files, which a reader of `session-log.md` would miss — fix: `session-log.md` gets a short entry pointing to any separate file [settled] [2026-11-17]
+- [S] Move every log entry to its own file under `docs/journal/` and keep `session-log.md` as an index — activates if the owner agrees [medium] [2026-11-17]
+
+**Next steps:**
+- Owner to merge #30.
+- Then work package 2, task 1: seed functions.
