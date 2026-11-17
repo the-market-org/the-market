@@ -39,6 +39,7 @@ export function buildChangesServices(input: {
   moveOne: typeof moveChangeSet;
   isAllowed: (move: { fromState: string; toState: string }) => boolean;
   explainRefusal: typeof explainRefusedMove;
+  publishEvent: (eventName: string, payload: unknown) => Promise<void>;
 }): ServiceMap {
   return {
     createChangeSet: (request: { tenantId: string; title: string; proposedBy: string }): Promise<ChangeSetRecord> =>
@@ -46,15 +47,19 @@ export function buildChangesServices(input: {
     findChangeSet: (request: { tenantId: string; changeSetId: string }) => input.database.findChangeSet(request),
     addChangeItem: (request: Omit<Parameters<typeof addChangeItem>[0], "findSet" | "insertItem">) =>
       input.addOne({ ...request, findSet: input.database.findChangeSet, insertItem: input.database.insertChangeItem }),
-    moveChangeSet: (
+    /** Moves the state, then tells the rest of the system: `changes.change-set.moved`. */
+    moveChangeSet: async (
       request: Omit<Parameters<typeof moveChangeSet>[0], "isAllowed" | "updateState" | "findSet" | "explainRefusal">,
-    ) =>
-      input.moveOne({
+    ) => {
+      await input.moveOne({
         ...request,
         isAllowed: input.isAllowed,
         updateState: input.database.updateState,
         findSet: input.database.findChangeSet,
         explainRefusal: input.explainRefusal,
-      }),
+      });
+      const { tenantId, changeSetId, fromState, toState } = request;
+      await input.publishEvent("changes.change-set.moved", { tenantId, changeSetId, fromState, toState });
+    },
   };
 }

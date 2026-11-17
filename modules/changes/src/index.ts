@@ -18,6 +18,7 @@ export function registerChanges(context: ModuleContext): ServiceMap {
     moveOne: moveChangeSet,
     isAllowed: isAllowedMove,
     explainRefusal: explainRefusedMove,
+    publishEvent: context.publishEvent,
   });
 }
 
