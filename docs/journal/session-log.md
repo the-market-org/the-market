@@ -521,3 +521,22 @@
 **Next steps:**
 - Owner to merge #26.
 - Then move task 3 onto main and open its pull request.
+
+### 2026-11-16, work package 1 task 3: the server resolves the tenant
+
+**What happened:** Task 3 was built test-first: the HTTP adapter now resolves the tenant from the request's host and answers 404 for unknown stores, and the server composition takes a module registry so tests need no database. It was built while #26 was still awaiting its required review, then opened once #26 reached main.
+
+**Key changes:**
+- `hono-adapter.ts`: `Route.tenantScoped`, `RouteRequest.tenantId`, `readHost`, 404 `{"error":"unknown_store"}`.
+- `compose-modules.ts` (new) loads tenancy and catalog; `compose.ts` takes `registry`; `main.ts` calls both.
+- Checks: typecheck clean; 23 tests pass; the real server loaded both modules against the development database.
+- Plan corrected: the host falls back to the request URL when the header is absent.
+
+**Artifacts:**
+- [I] The repository ruleset "Prevent Push" requires one approving review on every pull request; the author cannot approve their own, so each merge needs the owner's bypass or a second reviewer — invalidates if the ruleset changes [high] [2026-11-16]
+- [D] The request's host comes from the `Host` header, else from the request URL — invalidates if a proxy needs `X-Forwarded-Host` [medium] [2026-11-16]
+- [D] `composeServer` takes a registry instead of a database URL, so server tests use fake modules — invalidates never [medium] [2026-11-16]
+
+**Next steps:**
+- Owner to merge this pull request.
+- Then task 4: catalog scoped by tenant.

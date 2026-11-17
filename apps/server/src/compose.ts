@@ -1,39 +1,38 @@
 /**
- * Composition root of the server: loads the modules and wires the routes.
- * To add a module, add its definition to the list below.
+ * Composition root of the server: wires the routes to the loaded modules.
+ * It takes the module registry as input, so tests can pass a fake one.
  */
-import {
-  buildEventBus,
-  buildModuleDatabaseUrl,
-  findReadyNames,
-  loadModules,
-  orderModuleNames,
-} from "@the-market/core";
-import { catalogModule } from "@the-market/module-catalog";
+import { resolveService } from "@the-market/core";
+import type { ModuleRegistry } from "@the-market/core";
 import { Hono } from "hono";
 import { handleHealth } from "./health-handler.ts";
 import { answerWithRoute, mountRoutes } from "./hono-adapter.ts";
 import type { Route } from "./hono-adapter.ts";
 
-export async function composeServer(input: { readUptime: () => number; databaseUrl: string }): Promise<Hono> {
-  const eventBus = buildEventBus();
-  const registry = await loadModules({
-    definitions: [catalogModule],
-    buildContext: (moduleInfo) => ({
-      ...moduleInfo,
-      databaseUrl: buildModuleDatabaseUrl({ databaseUrl: input.databaseUrl, schemaName: moduleInfo.schemaName }),
-      publishEvent: eventBus.publishEvent,
-      subscribeEvent: eventBus.subscribeEvent,
-    }),
-    orderNames: orderModuleNames,
-    findReady: findReadyNames,
-  });
+type ResolveTenantService = (input: { host: string }) => Promise<string | undefined>;
+
+export async function composeServer(input: {
+  readUptime: () => number;
+  registry: ModuleRegistry;
+}): Promise<Hono> {
+  const resolveTenantService = resolveService({
+    registry: input.registry,
+    moduleName: "tenancy",
+    serviceName: "resolveTenant",
+  }) as ResolveTenantService;
   const routes: Route[] = [
     {
       method: "GET",
       path: "/health",
-      handleRequest: () => handleHealth({ moduleNames: Object.keys(registry), readUptime: input.readUptime }),
+      tenantScoped: false,
+      handleRequest: () =>
+        handleHealth({ moduleNames: Object.keys(input.registry), readUptime: input.readUptime }),
     },
   ];
-  return mountRoutes({ app: new Hono(), routes, answerRoute: answerWithRoute });
+  return mountRoutes({
+    app: new Hono(),
+    routes,
+    answerRoute: answerWithRoute,
+    resolveTenant: (host) => resolveTenantService({ host }),
+  });
 }
