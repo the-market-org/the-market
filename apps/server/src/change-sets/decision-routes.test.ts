@@ -42,6 +42,7 @@ function send(input: { routes: ReturnType<typeof buildDecisionRoutes>; path: str
     queryValues: {},
     bodyText: input.bodyText ?? "",
     authorization: "",
+    headerValues: {},
   });
 }
 
