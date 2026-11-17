@@ -1,3 +1,5 @@
+import type { CapabilityDefinition } from "./capability-types.ts";
+
 /** Public services a module exposes, keyed by service name. */
 export type ServiceMap = Record<string, unknown>;
 
@@ -29,6 +31,8 @@ export interface ModuleDefinition {
   /** Modules that must be loaded first (their events must exist). */
   dependsOn: string[];
   register: (context: ModuleContext) => Promise<ServiceMap> | ServiceMap;
+  /** The capabilities this module offers, built over its own registered services. */
+  listCapabilities?: (input: { services: ServiceMap }) => CapabilityDefinition[];
 }
 
 export type BuildContext = (input: { moduleName: string; schemaName: string }) => ModuleContext;
