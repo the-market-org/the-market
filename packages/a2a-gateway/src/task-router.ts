@@ -20,7 +20,12 @@ export function parseRpcBody(bodyText: string): JsonRpcRequest | undefined {
   }
 }
 
-/** Runs a handler and turns a thrown error into a JSON-RPC internal error. */
+/** An error a handler throws to answer with a specific JSON-RPC code, for example task not found. */
+export function buildRpcFailure(input: { code: number; message: string }): Error {
+  return Object.assign(new Error(input.message), { rpcCode: input.code });
+}
+
+/** Runs a handler; an error from buildRpcFailure keeps its code, anything else is a JSON-RPC internal error. */
 export async function runRpcHandler(input: {
   requestId: RequestId;
   params: unknown;
@@ -29,12 +34,11 @@ export async function runRpcHandler(input: {
 }): Promise<JsonRpcResponse> {
   try {
     return { jsonrpc: "2.0", id: input.requestId, result: await input.handleMethod(input.params) };
-  } catch {
-    return input.buildError({
-      requestId: input.requestId,
-      code: RPC_ERROR_CODES.internalError,
-      message: "Internal error",
-    });
+  } catch (error) {
+    const rpcCode = (error as { rpcCode?: unknown }).rpcCode;
+    return typeof rpcCode === "number"
+      ? input.buildError({ requestId: input.requestId, code: rpcCode, message: (error as Error).message })
+      : input.buildError({ requestId: input.requestId, code: RPC_ERROR_CODES.internalError, message: "Internal error" });
   }
 }
 
