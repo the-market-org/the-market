@@ -25,6 +25,10 @@ export interface CatalogDatabase {
   /** Returns one tenant's products only. */
   findProducts: (input: { tenantId: string }) => Promise<ProductSummary[]>;
   insertProduct: (product: NewProduct) => Promise<ProductSummary>;
+  /** Returns the product only when it belongs to the tenant. */
+  findProductById: (input: { tenantId: string; productId: string }) => Promise<ProductSummary | undefined>;
+  /** Returns how many rows changed: 0 or 1. Matches tenant and product together. */
+  updateProductTitle: (input: { tenantId: string; productId: string; title: string }) => Promise<number>;
 }
 
 type PublishEvent = (eventName: string, payload: unknown) => Promise<void>;
@@ -55,11 +59,29 @@ export async function addProduct(input: {
   return product;
 }
 
+/** Changes a product's title. Rejects when the tenant has no such product. */
+export async function renameProduct(input: {
+  tenantId: string;
+  productId: string;
+  title: string;
+  updateTitle: CatalogDatabase["updateProductTitle"];
+}): Promise<void> {
+  const changedRows = await input.updateTitle({
+    tenantId: input.tenantId,
+    productId: input.productId,
+    title: input.title,
+  });
+  if (changedRows === 0) {
+    throw new Error("Product not found");
+  }
+}
+
 /** Builds the catalog module's public services over a storage port. */
 export function buildCatalogServices(input: {
   database: CatalogDatabase;
   publishEvent: PublishEvent;
   addOne: typeof addProduct;
+  renameOne: typeof renameProduct;
 }): ServiceMap {
   return {
     listProducts: (request: { tenantId: string }) => input.database.findProducts({ tenantId: request.tenantId }),
@@ -69,5 +91,9 @@ export function buildCatalogServices(input: {
         insertProduct: input.database.insertProduct,
         publishEvent: input.publishEvent,
       }),
+    findProduct: (request: { tenantId: string; productId: string }) =>
+      input.database.findProductById({ tenantId: request.tenantId, productId: request.productId }),
+    renameProduct: (request: { tenantId: string; productId: string; title: string }) =>
+      input.renameOne({ ...request, updateTitle: input.database.updateProductTitle }),
   };
 }

@@ -1,6 +1,6 @@
 import { defineModule } from "@the-market/core";
 import type { ModuleContext, ServiceMap } from "@the-market/core";
-import { addProduct, buildCatalogServices } from "./catalog-services.ts";
+import { addProduct, buildCatalogServices, renameProduct } from "./catalog-services.ts";
 import { buildCatalogDatabase, summariseProduct } from "./prisma-catalog-database.ts";
 
 export type { NewProduct, ProductSummary } from "./catalog-services.ts";
@@ -12,7 +12,7 @@ export { SEED_PRODUCTS, seedCatalog } from "./seed-products.ts";
  */
 export function registerCatalog(context: ModuleContext): ServiceMap {
   const database = buildCatalogDatabase({ databaseUrl: context.databaseUrl, summarise: summariseProduct });
-  return buildCatalogServices({ database, publishEvent: context.publishEvent, addOne: addProduct });
+  return buildCatalogServices({ database, publishEvent: context.publishEvent, addOne: addProduct, renameOne: renameProduct });
 }
 
 export const catalogModule = defineModule({
