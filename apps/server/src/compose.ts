@@ -4,6 +4,7 @@
  */
 import { resolveService } from "@the-market/core";
 import type { CapabilityRegistry, ModuleRegistry } from "@the-market/core";
+import type { PaymentProvider } from "@the-market/payment";
 import type { IdentitySocket } from "@the-market/sockets";
 import { Hono } from "hono";
 import { hasAgentRole, matchesAgent } from "./agent-access.ts";
@@ -34,6 +35,8 @@ export async function composeServer(input: {
   identityEnabled: boolean;
   /** Allow plain-http agent event URLs to this machine; never in production. */
   allowLocalHttp?: boolean;
+  /** The payment gateway for checkout; the fake provider when absent. */
+  paymentProvider?: PaymentProvider;
 }): Promise<Hono> {
   const resolveTenantService = resolveService({
     registry: input.registry,
@@ -89,7 +92,7 @@ export async function composeServer(input: {
       ...routes,
       ...composeStorefrontRoutes({ registry: input.registry }),
       composeAgentCardRoute({ registry: input.registry }),
-      ...composeShopperRoutes({ registry: input.registry }),
+      ...composeShopperRoutes({ registry: input.registry, paymentProvider: input.paymentProvider }),
       ...guardMerchantRoutes({ routes: merchantRoutes, enabled: merchantEnabled, matches: matchesRequest }),
       ...composeAgentRoutes({
         enabled: input.identityEnabled,
