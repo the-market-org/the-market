@@ -6,8 +6,10 @@ import { resolveService } from "@the-market/core";
 import type { CapabilityRegistry, ModuleRegistry } from "@the-market/core";
 import { Hono } from "hono";
 import { handleListCapabilities } from "./capabilities-handler.ts";
+import { composeChangeSetRoutes } from "./change-sets/compose-change-sets.ts";
 import { handleHealth } from "./health-handler.ts";
 import { answerWithRoute, mountRoutes } from "./hono-adapter.ts";
+import { guardMerchantRoutes, matchesMerchantToken } from "./merchant-token.ts";
 import { handleListProducts } from "./products-handler.ts";
 import type { Route } from "./hono-adapter.ts";
 
@@ -18,6 +20,8 @@ export async function composeServer(input: {
   readUptime: () => number;
   registry: ModuleRegistry;
   capabilities: CapabilityRegistry;
+  /** Enables the merchant routes. Empty means they are not mounted. */
+  merchantToken: string;
 }): Promise<Hono> {
   const resolveTenantService = resolveService({
     registry: input.registry,
@@ -51,9 +55,14 @@ export async function composeServer(input: {
       handleRequest: () => handleListCapabilities({ capabilities: input.capabilities }),
     },
   ];
+  const merchantRoutes =
+    input.merchantToken === "" ? [] : composeChangeSetRoutes({ registry: input.registry, capabilities: input.capabilities });
   return mountRoutes({
     app: new Hono(),
-    routes,
+    routes: [
+      ...routes,
+      ...guardMerchantRoutes({ routes: merchantRoutes, merchantToken: input.merchantToken, matches: matchesMerchantToken }),
+    ],
     answerRoute: answerWithRoute,
     resolveTenant: (host) => resolveTenantService({ host }),
   });

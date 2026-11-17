@@ -9,7 +9,8 @@ if (databaseUrl === undefined) {
   throw new Error("DATABASE_URL is not set. Add it to .env in the repository root.");
 }
 const { registry, capabilities } = await composeModules({ databaseUrl });
-const app = await composeServer({ readUptime: () => process.uptime(), registry, capabilities });
+const merchantToken = process.env.MERCHANT_TOKEN ?? "";
+const app = await composeServer({ readUptime: () => process.uptime(), registry, capabilities, merchantToken });
 
 serve({ fetch: app.fetch, port }, (address) => {
   console.log(`the-market server listening on http://localhost:${address.port}`);
