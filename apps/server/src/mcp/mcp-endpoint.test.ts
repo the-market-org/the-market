@@ -9,6 +9,7 @@ const registry = {
   },
   catalog: { listProducts: async () => [] },
   pages: { findPage: async () => undefined },
+  connections: { saveConnection: async () => ({ signingSecret: "" }), findConnection: async () => undefined, removeConnection: async () => {} },
   changes: { createChangeSet: async () => ({}), findChangeSet: async () => undefined, addChangeItem: async () => ({}), moveChangeSet: async () => {} },
 };
 
