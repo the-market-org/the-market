@@ -85,6 +85,14 @@ The store depends on four interfaces with plain defaults, chosen from the enviro
 
 Mail is kept in an in-memory outbox and logged; app connections wait for the store owner's decision.
 
+## Example agent
+
+A scripted agent with no model that builds a starter store through the agent connection (MCP and A2A) and asks the merchant to approve it. With the server running with `IDENTITY_SECRET` set, and an agent token for the store:
+
+```bash
+AGENT_TOKEN=<agent token> pnpm example-agent --store http://localhost:3000 --host localhost --wait 30
+```
+
 ## Customising
 
 Store-specific changes go in [`overrides/`](overrides/README.md) and, later, `market.config.ts`. Nothing else needs editing to change default behaviour.
