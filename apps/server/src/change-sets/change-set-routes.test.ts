@@ -35,6 +35,7 @@ function buildRegistry() {
         return record;
       },
       findChangeSet: async (query: { tenantId: string; changeSetId: string }) => findStored(query),
+      moveChangeSet: async () => {},
       addChangeItem: async (item: { tenantId: string; changeSetId: string; capabilityName: string; summary: string; change: unknown; revert: unknown }) =>
         findStored(item)?.items.push({ ...item, itemId: "item_1", position: 0 }),
     },
