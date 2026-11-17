@@ -23,6 +23,8 @@ test("a tenant is stored and found by host in the tenancy schema only", { skip: 
     const found = await database.findTenantByHost({ host: primaryHost });
     assert.equal(found?.tenantId, created.tenantId);
     assert.equal(await database.findTenantByHost({ host: "nobody.example" }), undefined);
+    assert.equal((await database.findTenantById({ tenantId: created.tenantId }))?.primaryHost, primaryHost);
+    assert.equal(await database.findTenantById({ tenantId: "not-a-uuid" }), undefined);
 
     const tableRows = await client.$queryRaw<Array<{ table_schema: string }>>`
       select table_schema from information_schema.tables where table_name = 'tenant'`;
