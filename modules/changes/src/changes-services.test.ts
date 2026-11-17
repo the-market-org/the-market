@@ -53,13 +53,14 @@ function buildFakeDatabase(): ChangesDatabase {
   };
 }
 
-function buildServices(): ChangesServices {
+function buildServices(published: Array<[string, unknown]> = []): ChangesServices {
   return buildChangesServices({
     database: buildFakeDatabase(),
     addOne: addChangeItem,
     moveOne: moveChangeSet,
     isAllowed: isAllowedMove,
     explainRefusal: explainRefusedMove,
+    publishEvent: async (eventName, payload) => void published.push([eventName, payload]),
   }) as unknown as ChangesServices;
 }
 
@@ -100,4 +101,16 @@ test("another tenant's change set is not found by any service", async () => {
   await assert.rejects(services.moveChangeSet({ ...keys, fromState: "draft", toState: "approved", ...noNames }), {
     message: "Change set not found",
   });
+});
+
+test("a successful move publishes changes.change-set.moved; a refused one publishes nothing", async () => {
+  const published: Array<[string, unknown]> = [];
+  const services = buildServices(published);
+  const draft = await createDraft(services);
+  const keys = { tenantId: "tenant-a", changeSetId: draft.changeSetId };
+
+  await services.moveChangeSet({ ...keys, fromState: "draft", toState: "approved", ...noNames });
+  await assert.rejects(services.moveChangeSet({ ...keys, fromState: "draft", toState: "rejected", ...noNames }));
+
+  assert.deepEqual(published, [["changes.change-set.moved", { ...keys, fromState: "draft", toState: "approved" }]]);
 });
