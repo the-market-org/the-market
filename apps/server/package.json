@@ -9,6 +9,7 @@
     "@the-market/module-catalog": "workspace:*",
     "@the-market/module-changes": "workspace:*",
     "@the-market/module-tenancy": "workspace:*",
+    "@the-market/sockets": "workspace:*",
     "hono": "4.13.18"
   }
 }
