@@ -13,6 +13,7 @@ import {
   orderModuleNames,
 } from "@the-market/core";
 import type { CapabilityRegistry, EventBus, ModuleRegistry } from "@the-market/core";
+import { cartsModule } from "@the-market/module-carts";
 import { catalogModule } from "@the-market/module-catalog";
 import { changesModule } from "@the-market/module-changes";
 import { connectionsModule } from "@the-market/module-connections";
@@ -22,7 +23,7 @@ import { tenancyModule } from "@the-market/module-tenancy";
 export async function composeModules(input: {
   databaseUrl: string;
 }): Promise<{ registry: ModuleRegistry; capabilities: CapabilityRegistry; subscribeEvent: EventBus["subscribeEvent"] }> {
-  const definitions = [tenancyModule, catalogModule, changesModule, pagesModule, connectionsModule];
+  const definitions = [tenancyModule, catalogModule, changesModule, pagesModule, connectionsModule, cartsModule];
   const eventBus = buildEventBus();
   const registry = await loadModules({
     definitions,
