@@ -13,4 +13,5 @@ export type { FolderFiles } from "./folder-storage.ts";
 export { buildMemoryStorage } from "./memory-storage.ts";
 export { buildOutboxMail } from "./outbox-mail.ts";
 export type { SentMail } from "./outbox-mail.ts";
+export { buildOwnerAuthoriser } from "./owner-authoriser.ts";
 export { buildTokenIdentity } from "./token-identity.ts";
