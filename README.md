@@ -60,6 +60,11 @@ pnpm db catalog migrate deploy
 
 `pnpm db <module> <prisma arguments>` runs any Prisma command for one module.
 
+## Seed data
+
+Run `pnpm seed` after the migrations to create a demo store for `localhost` with six demo products.
+Set `STORE_HOST` to seed another host name. Running it again adds nothing.
+
 ## Start the server
 
 ```bash

@@ -4,6 +4,7 @@ import { addProduct, buildCatalogServices } from "./catalog-services.ts";
 import { buildCatalogDatabase, summariseProduct } from "./prisma-catalog-database.ts";
 
 export type { NewProduct, ProductSummary } from "./catalog-services.ts";
+export { SEED_PRODUCTS, seedCatalog } from "./seed-products.ts";
 
 /**
  * Composition root of the catalog module: connects the services to the
