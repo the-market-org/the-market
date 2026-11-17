@@ -9,6 +9,7 @@
     "@the-market/core": "workspace:*",
     "@the-market/module-catalog": "workspace:*",
     "@the-market/module-changes": "workspace:*",
+    "@the-market/module-connections": "workspace:*",
     "@the-market/module-pages": "workspace:*",
     "@the-market/module-tenancy": "workspace:*",
     "@the-market/sockets": "workspace:*",
