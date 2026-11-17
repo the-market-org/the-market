@@ -6,3 +6,4 @@ export { addFragment, listSlotFragments } from "./slot-registry.ts";
 export { DEFAULT_SECTIONS } from "./sections/default-sections.ts";
 export { escapeHtml, readSettingText } from "./sections/escape-html.ts";
 export type { PageData, PageSection, ProductCard, SectionDefinition } from "./sections/section-types.ts";
+export { DEFAULT_PAGES, formatPrice, renderPage } from "./sections/render-page.ts";
