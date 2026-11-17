@@ -5,6 +5,8 @@
 import { PrismaClient } from "./generated/client/index.js";
 import type { TenancyDatabase } from "./tenancy-services.ts";
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export function buildTenancyDatabase(input: {
   databaseUrl: string;
 }): TenancyDatabase & { disconnect: () => Promise<void> } {
@@ -13,6 +15,12 @@ export function buildTenancyDatabase(input: {
     findTenantByHost: async (query) => {
       const tenant = await client.tenant.findUnique({ where: { primaryHost: query.host } });
       return tenant ?? undefined;
+    },
+    findTenantById: async (query) => {
+      const tenants = UUID_PATTERN.test(query.tenantId)
+        ? await client.tenant.findMany({ where: { tenantId: query.tenantId } })
+        : [];
+      return tenants[0];
     },
     insertTenant: (tenant) =>
       client.tenant.create({

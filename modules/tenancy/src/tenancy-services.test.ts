@@ -7,11 +7,13 @@ interface TenancyServices {
   resolveTenant: (input: { host: string }) => Promise<string | undefined>;
   createTenant: (input: { slug: string; name: string; primaryHost: string }) => Promise<TenantRecord>;
   ensureTenant: (input: { slug: string; name: string; primaryHost: string }) => Promise<TenantRecord>;
+  findTenant: (input: { tenantId: string }) => Promise<TenantRecord | undefined>;
 }
 
 function buildFakeDatabase(stored: TenantRecord[]): TenancyDatabase {
   return {
     findTenantByHost: async (input) => stored.find((tenant) => tenant.primaryHost === input.host),
+    findTenantById: async (input) => stored.find((tenant) => tenant.tenantId === input.tenantId),
     insertTenant: async (input) => {
       const tenant = { ...input, tenantId: `tenant_${stored.length + 1}`, status: "active" };
       stored.push(tenant);
@@ -71,4 +73,12 @@ test("ensureTenant returns the existing tenant for a host instead of adding a se
   assert.equal(second.tenantId, first.tenantId);
   assert.equal(stored.length, 1);
   assert.equal(first.primaryHost, "localhost");
+});
+
+test("findTenant returns a tenant by its id, and nothing for an unknown id", async () => {
+  const services = buildServices([]);
+  const created = await services.createTenant({ slug: "shop-a", name: "Shop A", primaryHost: "shop-a.example" });
+
+  assert.equal((await services.findTenant({ tenantId: created.tenantId }))?.name, "Shop A");
+  assert.equal(await services.findTenant({ tenantId: "tenant_unknown" }), undefined);
 });
