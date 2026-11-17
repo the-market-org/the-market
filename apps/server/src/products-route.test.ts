@@ -14,10 +14,11 @@ const ropeLead = {
 const hostTenants: Record<string, string> = { "shop-a.example": "tenant-a", "shop-b.example": "tenant-b" };
 
 const fakeRegistry = {
-  tenancy: { resolveTenant: async (request: { host: string }) => hostTenants[request.host] },
+  tenancy: { resolveTenant: async (request: { host: string }) => hostTenants[request.host], findTenant: async () => undefined },
   catalog: {
     listProducts: async (request: { tenantId: string }) => (request.tenantId === "tenant-a" ? [ropeLead] : []),
   },
+  pages: { findPage: async () => undefined },
 };
 
 function requestProducts(host: string): Promise<Response> {
