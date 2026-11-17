@@ -134,7 +134,7 @@ export PATH="$HOME/Library/pnpm/bin:$PATH"; source ~/.nvm/nvm.sh; nvm use 22
 | 1 | Tenancy | — | `tenancy` module, tenant resolved from host, catalog scoped by tenant | `2026-11-16-wp1-tenancy.md` |
 | 2 | Seed data and products route | 1 | `pnpm seed`; `GET /api/products` per tenant | `2026-11-16-wp2-seed-and-products-route.md` |
 | 3 | Capability registry | 2 | Modules declare capabilities; first catalog capability; `GET /api/capabilities` | `2026-11-16-wp3-capability-registry.md` |
-| 4 | Change sets | 3 | `changes` module: draft, preview data, apply, revert | To write |
+| 4 | Change sets | 3 | `changes` module: draft, preview data, apply, revert | `2026-11-17-wp4-change-sets.md` |
 | 5 | Sockets | 1 | Identity, file storage, mail, app authoriser ports with default implementations | To write |
 | 6 | Store as data | 4 | `pages` module; storefront home and product pages rendered from sections | To write |
 | 7 | Agent connection | 4, 5 | MCP endpoint, A2A endpoint, event delivery, per tenant | To write |
