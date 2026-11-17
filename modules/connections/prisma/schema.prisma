@@ -1,0 +1,25 @@
+// The connections module's own schema. Run Prisma through `pnpm db connections ...`,
+// which points MODULE_DATABASE_URL at the "connections" PostgreSQL schema.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("MODULE_DATABASE_URL")
+}
+
+/// The agent a store sends its events to. One per store.
+model AgentConnection {
+  connectionId  String   @id @default(uuid()) @map("connection_id") @db.Uuid
+  tenantId      String   @unique @map("tenant_id") @db.Uuid
+  eventsUrl     String   @map("events_url")
+  signingSecret String   @map("signing_secret")
+  eventNames    String[] @map("event_names")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@map("agent_connections")
+}
