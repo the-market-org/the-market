@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { buildTenancyServices, normaliseHost, resolveTenant } from "./tenancy-services.ts";
+import { buildTenancyServices, ensureTenant, normaliseHost, resolveTenant } from "./tenancy-services.ts";
 import type { TenancyDatabase, TenantRecord } from "./tenancy-services.ts";
 
 interface TenancyServices {
   resolveTenant: (input: { host: string }) => Promise<string | undefined>;
   createTenant: (input: { slug: string; name: string; primaryHost: string }) => Promise<TenantRecord>;
+  ensureTenant: (input: { slug: string; name: string; primaryHost: string }) => Promise<TenantRecord>;
 }
 
 function buildFakeDatabase(stored: TenantRecord[]): TenancyDatabase {
@@ -23,6 +24,7 @@ function buildServices(stored: TenantRecord[]): TenancyServices {
   return buildTenancyServices({
     database: buildFakeDatabase(stored),
     resolve: resolveTenant,
+    ensure: ensureTenant,
     normalise: normaliseHost,
   }) as unknown as TenancyServices;
 }
@@ -56,4 +58,17 @@ test("a suspended tenant resolves to nothing", async () => {
     status: "suspended",
   };
   assert.equal(await buildServices([suspended]).resolveTenant({ host: "closed.example" }), undefined);
+});
+
+test("ensureTenant returns the existing tenant for a host instead of adding a second", async () => {
+  const stored: TenantRecord[] = [];
+  const services = buildServices(stored);
+  const demo = { slug: "demo", name: "Demo store", primaryHost: "LOCALHOST:3000" };
+
+  const first = await services.ensureTenant(demo);
+  const second = await services.ensureTenant(demo);
+
+  assert.equal(second.tenantId, first.tenantId);
+  assert.equal(stored.length, 1);
+  assert.equal(first.primaryHost, "localhost");
 });

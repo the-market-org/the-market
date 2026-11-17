@@ -30,10 +30,25 @@ export async function resolveTenant(input: {
   return tenant?.status === "active" ? tenant.tenantId : undefined;
 }
 
+/** Returns the tenant that owns a host name, creating it only when none exists. */
+export async function ensureTenant(input: {
+  slug: string;
+  name: string;
+  primaryHost: string;
+  findTenantByHost: TenancyDatabase["findTenantByHost"];
+  insertTenant: TenancyDatabase["insertTenant"];
+  normalise: (host: string) => string;
+}): Promise<TenantRecord> {
+  const primaryHost = input.normalise(input.primaryHost);
+  const existing = await input.findTenantByHost({ host: primaryHost });
+  return existing ?? input.insertTenant({ slug: input.slug, name: input.name, primaryHost });
+}
+
 /** Builds the tenancy module's public services over a storage port. */
 export function buildTenancyServices(input: {
   database: TenancyDatabase;
   resolve: typeof resolveTenant;
+  ensure: typeof ensureTenant;
   normalise: typeof normaliseHost;
 }): ServiceMap {
   return {
@@ -48,6 +63,13 @@ export function buildTenancyServices(input: {
         slug: tenant.slug,
         name: tenant.name,
         primaryHost: input.normalise(tenant.primaryHost),
+      }),
+    ensureTenant: (tenant: { slug: string; name: string; primaryHost: string }) =>
+      input.ensure({
+        ...tenant,
+        findTenantByHost: input.database.findTenantByHost,
+        insertTenant: input.database.insertTenant,
+        normalise: input.normalise,
       }),
   };
 }
