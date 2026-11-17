@@ -1,0 +1,24 @@
+// The pages module's own schema. Run Prisma through `pnpm db pages ...`,
+// which points MODULE_DATABASE_URL at the "pages" PostgreSQL schema.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("MODULE_DATABASE_URL")
+}
+
+/// One page of one store: an ordered list of sections with settings.
+model Page {
+  pageId    String   @id @default(uuid()) @map("page_id") @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  pageKey   String   @map("page_key") // home | product
+  sections  Json // [{ sectionType, settings }]
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@unique([tenantId, pageKey])
+  @@map("pages")
+}
