@@ -176,6 +176,15 @@ importers:
         specifier: ^5.9.0
         version: 5.9.3
 
+  apps/example-agent:
+    dependencies:
+      '@the-market/a2a-gateway':
+        specifier: workspace:*
+        version: link:../../packages/a2a-gateway
+      '@the-market/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+
   apps/server:
     dependencies:
       '@hono/node-server':
