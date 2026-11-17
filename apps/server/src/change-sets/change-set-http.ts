@@ -4,12 +4,15 @@ import type { HttpReply, listInputProblems } from "@the-market/core";
 /** Status for each known error, matched by message prefix. Anything else is 422. */
 const ERROR_STATUSES: ReadonlyArray<readonly [string, number]> = Object.freeze([
   ["Change set not found", 404],
+  ["Cart not found", 404],
+  ["Order not found", 404],
   ["invalid_json", 400],
   ["Unknown capability:", 400],
   ["Invalid input:", 400],
   ["Approval needs a name", 400],
   ["Change set is not a draft", 409],
   ["Change set cannot move from", 409],
+  ["Cart is already checked out", 409],
 ]);
 
 export function replyJson(input: { status: number; body: unknown }): HttpReply {
