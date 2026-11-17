@@ -72,6 +72,7 @@ pnpm dev
 ```
 
 Then open `http://localhost:3000/health`. Set `PORT` to use another port.
+Set `MERCHANT_TOKEN` to enable the merchant routes (`/api/change-sets`); they then need `Authorization: Bearer <token>`.
 
 ## Customising
 
