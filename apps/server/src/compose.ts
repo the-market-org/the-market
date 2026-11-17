@@ -4,12 +4,13 @@
  */
 import { resolveService } from "@the-market/core";
 import type { CapabilityRegistry, ModuleRegistry } from "@the-market/core";
+import type { IdentitySocket } from "@the-market/sockets";
 import { Hono } from "hono";
 import { handleListCapabilities } from "./capabilities-handler.ts";
 import { composeChangeSetRoutes } from "./change-sets/compose-change-sets.ts";
 import { handleHealth } from "./health-handler.ts";
 import { answerWithRoute, mountRoutes } from "./hono-adapter.ts";
-import { guardMerchantRoutes, matchesMerchantToken } from "./merchant-token.ts";
+import { guardMerchantRoutes, isMerchantOf, matchesMerchant, matchesMerchantToken, readBearerToken } from "./merchant-token.ts";
 import { handleListProducts } from "./products-handler.ts";
 import type { Route } from "./hono-adapter.ts";
 
@@ -20,8 +21,11 @@ export async function composeServer(input: {
   readUptime: () => number;
   registry: ModuleRegistry;
   capabilities: CapabilityRegistry;
-  /** Enables the merchant routes. Empty means they are not mounted. */
+  /** Shared merchant token for local development. Empty means it is not accepted. */
   merchantToken: string;
+  identity: IdentitySocket;
+  /** True when identity tokens can be verified (a secret is configured). */
+  identityEnabled: boolean;
 }): Promise<Hono> {
   const resolveTenantService = resolveService({
     registry: input.registry,
@@ -55,13 +59,22 @@ export async function composeServer(input: {
       handleRequest: () => handleListCapabilities({ capabilities: input.capabilities }),
     },
   ];
-  const merchantRoutes =
-    input.merchantToken === "" ? [] : composeChangeSetRoutes({ registry: input.registry, capabilities: input.capabilities });
+  const merchantEnabled = input.merchantToken !== "" || input.identityEnabled;
+  const merchantRoutes = merchantEnabled ? composeChangeSetRoutes({ registry: input.registry, capabilities: input.capabilities }) : [];
+  const matchesRequest = (request: { authorization: string; tenantId: string }) =>
+    matchesMerchant({
+      ...request,
+      merchantToken: input.merchantToken,
+      verifyToken: input.identity.verifyToken,
+      matchesShared: matchesMerchantToken,
+      readBearer: readBearerToken,
+      isMerchant: isMerchantOf,
+    });
   return mountRoutes({
     app: new Hono(),
     routes: [
       ...routes,
-      ...guardMerchantRoutes({ routes: merchantRoutes, merchantToken: input.merchantToken, matches: matchesMerchantToken }),
+      ...guardMerchantRoutes({ routes: merchantRoutes, enabled: merchantEnabled, matches: matchesRequest }),
     ],
     answerRoute: answerWithRoute,
     resolveTenant: (host) => resolveTenantService({ host }),
