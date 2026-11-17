@@ -7,6 +7,8 @@ import type { Context, Hono } from "hono";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 
 export interface RouteRequest {
+  /** The store this request is for. Empty for routes that are not tenant scoped. */
+  tenantId: string;
   pathParams: Record<string, string>;
   queryValues: Record<string, string>;
   bodyText: string;
@@ -15,15 +17,33 @@ export interface RouteRequest {
 export interface Route {
   method: "GET" | "POST";
   path: string;
+  /** When true, the request's host must belong to a tenant or the reply is 404. */
+  tenantScoped: boolean;
   handleRequest: (request: RouteRequest) => Promise<HttpReply>;
 }
 
-/** Turns a Hono request into plain values, runs the handler, sends its reply. */
+type ResolveTenant = (host: string) => Promise<string | undefined>;
+
+/** Reads the host the client asked for: the Host header, else the URL's host. */
+export function readHost(context: Context): string {
+  return context.req.header("host") ?? new URL(context.req.url).host;
+}
+
+/** Resolves the tenant, turns the request into plain values, runs the handler. */
 export async function answerWithRoute(input: {
   context: Context;
-  handleRequest: Route["handleRequest"];
+  route: Route;
+  resolveTenant: ResolveTenant;
+  readRequestHost: (context: Context) => string;
 }): Promise<Response> {
-  const reply = await input.handleRequest({
+  const tenantId = input.route.tenantScoped
+    ? await input.resolveTenant(input.readRequestHost(input.context))
+    : "";
+  if (tenantId === undefined) {
+    return input.context.body('{"error":"unknown_store"}', 404, { "content-type": "application/json" });
+  }
+  const reply = await input.route.handleRequest({
+    tenantId,
     pathParams: input.context.req.param(),
     queryValues: input.context.req.query(),
     bodyText: await input.context.req.text(),
@@ -32,10 +52,20 @@ export async function answerWithRoute(input: {
 }
 
 /** Registers every route on the Hono app. */
-export function mountRoutes(input: { app: Hono; routes: Route[]; answerRoute: typeof answerWithRoute }): Hono {
+export function mountRoutes(input: {
+  app: Hono;
+  routes: Route[];
+  answerRoute: typeof answerWithRoute;
+  resolveTenant: ResolveTenant;
+}): Hono {
   for (const route of input.routes) {
     input.app.on(route.method, route.path, (context) =>
-      input.answerRoute({ context, handleRequest: route.handleRequest }),
+      input.answerRoute({
+        context,
+        route,
+        resolveTenant: input.resolveTenant,
+        readRequestHost: readHost,
+      }),
     );
   }
   return input.app;
