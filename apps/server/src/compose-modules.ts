@@ -14,12 +14,13 @@ import {
 } from "@the-market/core";
 import type { CapabilityRegistry, ModuleRegistry } from "@the-market/core";
 import { catalogModule } from "@the-market/module-catalog";
+import { changesModule } from "@the-market/module-changes";
 import { tenancyModule } from "@the-market/module-tenancy";
 
 export async function composeModules(input: {
   databaseUrl: string;
 }): Promise<{ registry: ModuleRegistry; capabilities: CapabilityRegistry }> {
-  const definitions = [tenancyModule, catalogModule];
+  const definitions = [tenancyModule, catalogModule, changesModule];
   const eventBus = buildEventBus();
   const registry = await loadModules({
     definitions,
