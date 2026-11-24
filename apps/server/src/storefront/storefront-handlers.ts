@@ -3,6 +3,7 @@ import type { HttpReply } from "@the-market/core";
 import type { PageData, PageSection, ProductCard } from "@the-market/theme-engine";
 
 export interface StoreProduct {
+  productId: string;
   handle: string;
   title: string;
   priceMinor: number;

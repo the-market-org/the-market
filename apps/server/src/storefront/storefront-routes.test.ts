@@ -6,12 +6,12 @@ const tenants: Record<string, { tenantId: string; name: string }> = {
   "shop-a.example": { tenantId: "tenant-a", name: "Leads & Co" },
   "shop-b.example": { tenantId: "tenant-b", name: "Shop B" },
 };
-const products: Record<string, Array<{ handle: string; title: string; priceMinor: number; currencyCode: string }>> = {
+const products: Record<string, Array<{ productId: string; handle: string; title: string; priceMinor: number; currencyCode: string }>> = {
   "tenant-a": [
-    { handle: "rope-lead", title: "Rope lead", priceMinor: 1800, currencyCode: "GBP" },
-    { handle: "chew-toy", title: "Chew toy", priceMinor: 700, currencyCode: "GBP" },
+    { productId: "p-rope-lead", handle: "rope-lead", title: "Rope lead", priceMinor: 1800, currencyCode: "GBP" },
+    { productId: "p-chew-toy", handle: "chew-toy", title: "Chew toy", priceMinor: 700, currencyCode: "GBP" },
   ],
-  "tenant-b": [{ handle: "cat-bed", title: "Cat bed", priceMinor: 3000, currencyCode: "GBP" }],
+  "tenant-b": [{ productId: "p-cat-bed", handle: "cat-bed", title: "Cat bed", priceMinor: 3000, currencyCode: "GBP" }],
 };
 const savedPages: Record<string, unknown> = {
   "tenant-b home": [{ sectionType: "hero", settings: { heading: "Only for shop B" } }],

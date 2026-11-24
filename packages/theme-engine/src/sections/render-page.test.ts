@@ -3,16 +3,17 @@ import { test } from "node:test";
 import { DEFAULT_SECTIONS } from "./default-sections.ts";
 import { escapeHtml, readSettingText } from "./escape-html.ts";
 import { DEFAULT_PAGES, formatPrice, renderPage } from "./render-page.ts";
+import { wrapDocument } from "./shop-pages.ts";
 import type { PageData, PageSection } from "./section-types.ts";
 
 const pageData: PageData = {
   storeName: "Leads & Co",
-  products: [{ handle: "rope-lead", title: "Rope lead", priceText: "£18.00" }],
+  products: [{ productId: "p-lead", handle: "rope-lead", title: "Rope lead", priceText: "£18.00" }],
   product: undefined,
 };
 
 function render(sections: PageSection[]): string {
-  return renderPage({ sections, pageData, definitions: DEFAULT_SECTIONS, escape: escapeHtml, readText: readSettingText });
+  return renderPage({ sections, pageData, definitions: DEFAULT_SECTIONS, escape: escapeHtml, readText: readSettingText, wrap: wrapDocument });
 }
 
 test("prices are formatted in the store's currency", () => {
