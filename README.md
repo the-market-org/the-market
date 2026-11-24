@@ -74,6 +74,17 @@ pnpm dev
 Then open `http://localhost:3000/health`. Set `PORT` to use another port.
 Set `MERCHANT_TOKEN` to enable the merchant routes (`/api/change-sets`); they then need `Authorization: Bearer <token>`.
 
+## Sockets
+
+The store depends on four interfaces with plain defaults, chosen from the environment:
+
+| Variable | Effect |
+|---|---|
+| `IDENTITY_SECRET` | Merchants sign in with HS256 tokens signed with it; the store comes from `app_metadata.tenant_id`. Unset: every token is refused. |
+| `FILES_FOLDER` | Files are stored in that folder, one subfolder per store. Unset: kept in memory. |
+
+Mail is kept in an in-memory outbox and logged; app connections wait for the store owner's decision.
+
 ## Customising
 
 Store-specific changes go in [`overrides/`](overrides/README.md) and, later, `market.config.ts`. Nothing else needs editing to change default behaviour.

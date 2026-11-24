@@ -1,7 +1,8 @@
 /** Entry point: reads the environment, builds the server and starts listening. */
 import { serve } from "@hono/node-server";
-import { buildTokenIdentity } from "@the-market/sockets";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { composeModules } from "./compose-modules.ts";
+import { composeSockets } from "./compose-sockets.ts";
 import { composeServer } from "./compose.ts";
 
 const port = Number(process.env.PORT ?? 3000);
@@ -11,10 +12,20 @@ if (databaseUrl === undefined) {
 }
 const { registry, capabilities } = await composeModules({ databaseUrl });
 const merchantToken = process.env.MERCHANT_TOKEN ?? "";
-const identitySecret = process.env.IDENTITY_SECRET ?? "";
-const identity = buildTokenIdentity({ secret: identitySecret, readNow: Date.now });
-const identityEnabled = identitySecret !== "";
-const app = await composeServer({ readUptime: () => process.uptime(), registry, capabilities, merchantToken, identity, identityEnabled });
+const sockets = composeSockets({
+  environment: process.env,
+  readNow: Date.now,
+  writeLine: (line) => console.log(line),
+  files: { writeFile, readFile, rm, mkdir },
+});
+const app = await composeServer({
+  readUptime: () => process.uptime(),
+  registry,
+  capabilities,
+  merchantToken,
+  identity: sockets.identity,
+  identityEnabled: sockets.identityEnabled,
+});
 
 serve({ fetch: app.fetch, port }, (address) => {
   console.log(`the-market server listening on http://localhost:${address.port}`);
