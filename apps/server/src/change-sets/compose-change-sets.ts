@@ -12,6 +12,9 @@ import { approveChangeSet, rejectChangeSet } from "./decide-workflow.ts";
 import type { MoveChangeSet } from "./decide-workflow.ts";
 import { buildDecisionRoutes } from "./decision-routes.ts";
 import { applyItem, applyItemsInOrder, describeError, revertItem, revertItemsInReverse } from "./item-steps.ts";
+import { buildStorefrontSteps } from "../storefront/compose-storefront.ts";
+import { findPreviewSections, handlePreview } from "../storefront/preview-handler.ts";
+import { renderStorePage } from "../storefront/storefront-handlers.ts";
 
 export function composeChangeSetRoutes(input: { registry: ModuleRegistry; capabilities: CapabilityRegistry }): Route[] {
   const changesService = (serviceName: string) => resolveService({ registry: input.registry, moduleName: "changes", serviceName });
@@ -45,8 +48,27 @@ export function composeChangeSetRoutes(input: { registry: ModuleRegistry; capabi
     apply: (keys: { tenantId: string; changeSetId: string }) => applyChangeSet(steps(keys)),
     revert: (keys: { tenantId: string; changeSetId: string }) => revertChangeSet(steps(keys)),
   };
+  const storefrontSteps = buildStorefrontSteps({ registry: input.registry });
   return [
     ...buildChangeSetRoutes({ actions, helpers, requireSet: requireChangeSet }),
     ...buildDecisionRoutes({ actions: decisions, helpers }),
+    {
+      method: "GET",
+      path: "/api/change-sets/:changeSetId/preview/:pageKey",
+      tenantScoped: true,
+      handleRequest: (request) =>
+        helpers.answer(() =>
+          handlePreview({
+            tenantId: request.tenantId,
+            changeSetId: String(request.pathParams.changeSetId),
+            pageKey: String(request.pathParams.pageKey),
+            handle: request.queryValues.handle ?? "",
+            findSet: actions.findChangeSet,
+            findSections: findPreviewSections,
+            steps: storefrontSteps,
+            renderPage: renderStorePage,
+          }),
+        ),
+    },
   ];
 }

@@ -6,7 +6,8 @@ import type { Route } from "../hono-adapter.ts";
 import { handleHomePage, handleProductPage, renderStorePage } from "./storefront-handlers.ts";
 import type { StorefrontSteps } from "./storefront-handlers.ts";
 
-export function composeStorefrontRoutes(input: { registry: ModuleRegistry }): Route[] {
+/** The storefront's reading and rendering steps over the loaded modules. */
+export function buildStorefrontSteps(input: { registry: ModuleRegistry }): StorefrontSteps {
   const service = (moduleName: string, serviceName: string) => resolveService({ registry: input.registry, moduleName, serviceName });
   const findTenant = service("tenancy", "findTenant") as (request: { tenantId: string }) => Promise<{ name: string } | undefined>;
   const steps: StorefrontSteps = {
@@ -17,6 +18,11 @@ export function composeStorefrontRoutes(input: { registry: ModuleRegistry }): Ro
     toCard: (product) => ({ handle: product.handle, title: product.title, priceText: formatPrice(product) }),
     render: (request) => renderPage({ ...request, definitions: DEFAULT_SECTIONS, escape: escapeHtml, readText: readSettingText }),
   };
+  return steps;
+}
+
+export function composeStorefrontRoutes(input: { registry: ModuleRegistry }): Route[] {
+  const steps = buildStorefrontSteps(input);
   return [
     { method: "GET", path: "/", tenantScoped: true, handleRequest: (request) => handleHomePage({ tenantId: request.tenantId, steps, renderPage: renderStorePage }) },
     {
