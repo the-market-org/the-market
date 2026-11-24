@@ -1,0 +1,9 @@
+{
+  "name": "@the-market/module-apps",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": { "@prisma/client": "6.19.3", "@the-market/core": "workspace:*" },
+  "devDependencies": { "prisma": "6.19.3" }
+}

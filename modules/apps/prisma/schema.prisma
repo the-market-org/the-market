@@ -1,0 +1,45 @@
+// The apps module's own schema. Run Prisma through `pnpm db apps ...`,
+// which points MODULE_DATABASE_URL at the "apps" PostgreSQL schema.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("MODULE_DATABASE_URL")
+}
+
+/// A third-party app a store has installed, as read from its A2A Agent Card.
+model App {
+  appId       String           @id @default(uuid()) @map("app_id") @db.Uuid
+  tenantId    String           @map("tenant_id") @db.Uuid
+  baseUrl     String           @map("base_url")
+  name        String
+  rpcUrl      String           @map("rpc_url")
+  slotSkills  String[]         @map("slot_skills") // skill ids tagged storefront-slot
+  permissions String[]
+  status      String           @default("pending") // pending | active | refused
+  installedAt DateTime         @default(now()) @map("installed_at") @db.Timestamptz
+  bindings    AppSlotBinding[]
+
+  @@unique([tenantId, baseUrl])
+  @@index([tenantId])
+  @@map("apps")
+}
+
+/// Which app skill fills which storefront slot, in priority order.
+model AppSlotBinding {
+  bindingId String @id @default(uuid()) @map("binding_id") @db.Uuid
+  tenantId  String @map("tenant_id") @db.Uuid
+  appId     String @map("app_id") @db.Uuid
+  slotName  String @map("slot_name")
+  skillId   String @map("skill_id")
+  priority  Int    @default(100)
+  app       App    @relation(fields: [appId], references: [appId])
+
+  @@unique([tenantId, slotName, appId])
+  @@index([tenantId])
+  @@map("app_slot_bindings")
+}
