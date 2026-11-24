@@ -17,13 +17,14 @@ import { cartsModule } from "@the-market/module-carts";
 import { catalogModule } from "@the-market/module-catalog";
 import { changesModule } from "@the-market/module-changes";
 import { connectionsModule } from "@the-market/module-connections";
+import { ordersModule } from "@the-market/module-orders";
 import { pagesModule } from "@the-market/module-pages";
 import { tenancyModule } from "@the-market/module-tenancy";
 
 export async function composeModules(input: {
   databaseUrl: string;
 }): Promise<{ registry: ModuleRegistry; capabilities: CapabilityRegistry; subscribeEvent: EventBus["subscribeEvent"] }> {
-  const definitions = [tenancyModule, catalogModule, changesModule, pagesModule, connectionsModule, cartsModule];
+  const definitions = [tenancyModule, catalogModule, changesModule, pagesModule, connectionsModule, cartsModule, ordersModule];
   const eventBus = buildEventBus();
   const registry = await loadModules({
     definitions,
