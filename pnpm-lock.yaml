@@ -193,6 +193,9 @@ importers:
       '@the-market/module-changes':
         specifier: workspace:*
         version: link:../../modules/changes
+      '@the-market/module-connections':
+        specifier: workspace:*
+        version: link:../../modules/connections
       '@the-market/module-pages':
         specifier: workspace:*
         version: link:../../modules/pages
@@ -223,6 +226,19 @@ importers:
         version: 6.19.3(typescript@5.9.3)
 
   modules/changes:
+    dependencies:
+      '@prisma/client':
+        specifier: 6.19.3
+        version: 6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3)
+      '@the-market/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+    devDependencies:
+      prisma:
+        specifier: 6.19.3
+        version: 6.19.3(typescript@5.9.3)
+
+  modules/connections:
     dependencies:
       '@prisma/client':
         specifier: 6.19.3

@@ -39,5 +39,6 @@ jobs:
       - run: pnpm db tenancy migrate deploy
       - run: pnpm db changes migrate deploy
       - run: pnpm db pages migrate deploy
+      - run: pnpm db connections migrate deploy
       - run: pnpm typecheck
       - run: pnpm test
