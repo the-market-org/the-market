@@ -1,5 +1,6 @@
 import { defineModule } from "@the-market/core";
 import type { ModuleContext, ServiceMap } from "@the-market/core";
+import { buildSetSectionsCapability, listPagesCapabilities } from "./pages-capabilities.ts";
 import { buildPagesServices, checkPageKey } from "./pages-services.ts";
 import { buildPagesDatabase } from "./prisma-pages-database.ts";
 
@@ -20,4 +21,6 @@ export const pagesModule = defineModule({
   schemaName: "pages",
   dependsOn: [],
   register: registerPages,
+  listCapabilities: (request) =>
+    listPagesCapabilities({ services: request.services, buildSetSections: buildSetSectionsCapability }),
 });
