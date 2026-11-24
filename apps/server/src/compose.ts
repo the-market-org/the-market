@@ -12,6 +12,7 @@ import { composeChangeSetRoutes } from "./change-sets/compose-change-sets.ts";
 import { handleHealth } from "./health-handler.ts";
 import { answerWithRoute, mountRoutes } from "./hono-adapter.ts";
 import { guardMerchantRoutes, isMerchantOf, matchesMerchant, matchesMerchantToken, readBearerToken } from "./merchant-token.ts";
+import { composeAgentCardRoute } from "./a2a/compose-a2a.ts";
 import { composeAgentRoutes } from "./mcp/compose-mcp.ts";
 import { handleListProducts } from "./products-handler.ts";
 import { composeStorefrontRoutes } from "./storefront/compose-storefront.ts";
@@ -78,6 +79,7 @@ export async function composeServer(input: {
     routes: [
       ...routes,
       ...composeStorefrontRoutes({ registry: input.registry }),
+      composeAgentCardRoute({ registry: input.registry }),
       ...guardMerchantRoutes({ routes: merchantRoutes, enabled: merchantEnabled, matches: matchesRequest }),
       ...composeAgentRoutes({
         enabled: input.identityEnabled,

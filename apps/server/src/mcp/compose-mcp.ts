@@ -2,6 +2,7 @@
 import { listInputProblems, resolveService } from "@the-market/core";
 import type { CapabilityRegistry, ModuleRegistry } from "@the-market/core";
 import type { ChangeSetRecord } from "@the-market/module-changes";
+import { composeA2aRoutes } from "../a2a/compose-a2a.ts";
 import { guardAgentRoutes } from "../agent-access.ts";
 import { addChangeToSet } from "../change-sets/add-change-workflow.ts";
 import type { AddItem } from "../change-sets/add-change-workflow.ts";
@@ -87,6 +88,8 @@ export function composeAgentRoutes(input: {
   capabilities: CapabilityRegistry;
   matches: (request: { authorization: string; tenantId: string }) => Promise<boolean>;
 }): Route[] {
-  const routes = input.enabled ? composeMcpRoutes({ registry: input.registry, capabilities: input.capabilities }) : [];
+  const routes = input.enabled
+    ? [...composeMcpRoutes({ registry: input.registry, capabilities: input.capabilities }), ...composeA2aRoutes({ registry: input.registry })]
+    : [];
   return guardAgentRoutes({ routes, enabled: input.enabled, matches: input.matches });
 }
