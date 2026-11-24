@@ -56,6 +56,9 @@ test("renaming with another tenant's id changes no row and leaves the title", { 
     assert.equal(await database.findProductById({ tenantId: tenantB, productId: productA.productId }), undefined);
     assert.equal((await database.findProductById({ tenantId: tenantA, productId: productA.productId }))?.title, "Lead A");
 
+    assert.equal(await database.findProductById({ tenantId: tenantA, productId: "p1" }), undefined);
+    assert.equal(await database.updateProductTitle({ tenantId: tenantA, productId: "p1", title: "Taken" }), 0);
+
     assert.equal(await database.updateProductTitle({ tenantId: tenantA, productId: productA.productId, title: "Lead B" }), 1);
     assert.equal((await database.findProductById({ tenantId: tenantA, productId: productA.productId }))?.title, "Lead B");
   } finally {

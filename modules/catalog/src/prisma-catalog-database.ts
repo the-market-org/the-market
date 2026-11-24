@@ -27,6 +27,13 @@ export function summariseProduct(record: ProductRecord): ProductSummary {
   };
 }
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** True for a UUID. Anything else cannot be a stored id, so it is treated as not found without a query. */
+export function isWellFormedId(text: string): boolean {
+  return UUID_PATTERN.test(text);
+}
+
 export function buildCatalogDatabase(input: {
   databaseUrl: string;
   summarise: (record: ProductRecord) => ProductSummary;
@@ -63,17 +70,21 @@ export function buildCatalogDatabase(input: {
       return input.summarise(record);
     },
     findProductById: async (query) => {
-      const records = await client.product.findMany({
-        where: { tenantId: query.tenantId, productId: query.productId },
-        include: { variants: true },
-      });
+      const records = isWellFormedId(query.productId)
+        ? await client.product.findMany({
+            where: { tenantId: query.tenantId, productId: query.productId },
+            include: { variants: true },
+          })
+        : [];
       return records.map((record) => input.summarise(record))[0];
     },
     updateProductTitle: async (change) => {
-      const result = await client.product.updateMany({
-        where: { tenantId: change.tenantId, productId: change.productId },
-        data: { title: change.title },
-      });
+      const result = isWellFormedId(change.productId)
+        ? await client.product.updateMany({
+            where: { tenantId: change.tenantId, productId: change.productId },
+            data: { title: change.title },
+          })
+        : { count: 0 };
       return result.count;
     },
     disconnect: () => client.$disconnect(),
