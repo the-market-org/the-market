@@ -1,0 +1,39 @@
+// The carts module's own schema. Run Prisma through `pnpm db carts ...`,
+// which points MODULE_DATABASE_URL at the "carts" PostgreSQL schema.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("MODULE_DATABASE_URL")
+}
+
+/// A shopper's cart. Its random id is the shopper's key to it.
+model Cart {
+  cartId    String     @id @default(uuid()) @map("cart_id") @db.Uuid
+  tenantId  String     @map("tenant_id") @db.Uuid
+  status    String     @default("open") // open | converted
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime   @updatedAt @map("updated_at") @db.Timestamptz
+  lines     CartLine[]
+
+  @@index([tenantId])
+  @@map("carts")
+}
+
+/// One product in a cart. Prices are not stored: checkout reads them from the catalog.
+model CartLine {
+  lineId    String @id @default(uuid()) @map("line_id") @db.Uuid
+  tenantId  String @map("tenant_id") @db.Uuid
+  cartId    String @map("cart_id") @db.Uuid
+  productId String @map("product_id") @db.Uuid
+  quantity  Int
+  cart      Cart   @relation(fields: [cartId], references: [cartId])
+
+  @@unique([cartId, productId])
+  @@index([tenantId])
+  @@map("cart_lines")
+}

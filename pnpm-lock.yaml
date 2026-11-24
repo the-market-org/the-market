@@ -196,6 +196,9 @@ importers:
       '@the-market/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@the-market/module-carts':
+        specifier: workspace:*
+        version: link:../../modules/carts
       '@the-market/module-catalog':
         specifier: workspace:*
         version: link:../../modules/catalog
@@ -220,6 +223,19 @@ importers:
       hono:
         specifier: 4.13.18
         version: 4.13.18
+
+  modules/carts:
+    dependencies:
+      '@prisma/client':
+        specifier: 6.19.3
+        version: 6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3)
+      '@the-market/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+    devDependencies:
+      prisma:
+        specifier: 6.19.3
+        version: 6.19.3(typescript@5.9.3)
 
   modules/catalog:
     dependencies:
