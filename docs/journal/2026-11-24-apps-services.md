@@ -6,5 +6,8 @@
 - `apps-services.ts`: `registerApp` (status from the authoriser's answer: `allowed` → `active`, `refused` → `refused`, `pending` → `pending`; the same address again returns the app already there), `decideApp` (only from `pending`; `App not found`, `App is not waiting for a decision`, `Invalid input: decision must be allowed or refused`), `listApps`, `findApp`, `setBinding` (active apps only: `App is not active`), `findBinding`, `removeBinding`, `listBindings`.
 - Checks: typecheck clean; 222 tests pass, 9 database tests skipped locally. Tests seen failing first.
 
+**Artifacts:**
+- [D] An app's status comes only from the app authoriser or the owner's decision, and a refused app stays refused — invalidates if the owner wants refused apps to be re-askable [medium] [2026-11-24]
+
 **Next steps:**
 - Owner to merge this pull request; then the install routes (task 3).
