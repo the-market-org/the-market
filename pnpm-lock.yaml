@@ -199,6 +199,9 @@ importers:
       '@the-market/sockets':
         specifier: workspace:*
         version: link:../../packages/sockets
+      '@the-market/theme-engine':
+        specifier: workspace:*
+        version: link:../../packages/theme-engine
       hono:
         specifier: 4.13.18
         version: 4.13.18
