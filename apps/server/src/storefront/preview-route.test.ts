@@ -19,7 +19,7 @@ const registry = {
     resolveTenant: async (request: { host: string }) => ({ "shop-a.example": "tenant-a", "shop-b.example": "tenant-b" })[request.host],
     findTenant: async () => ({ name: "Shop" }),
   },
-  catalog: { listProducts: async () => [{ handle: "rope-lead", title: "Rope lead", priceMinor: 1800, currencyCode: "GBP" }] },
+  catalog: { listProducts: async () => [{ productId: "p-rope-lead", handle: "rope-lead", title: "Rope lead", priceMinor: 1800, currencyCode: "GBP" }] },
   pages: {
     findPage: async (request: { pageKey: string }) =>
       request.pageKey === "home" ? [{ sectionType: "hero", settings: { heading: "Live heading" } }] : undefined,

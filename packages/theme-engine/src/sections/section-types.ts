@@ -6,6 +6,7 @@ export interface PageSection {
 
 /** A product as a section sees it: plain, already formatted values. */
 export interface ProductCard {
+  productId: string;
   handle: string;
   title: string;
   priceText: string;

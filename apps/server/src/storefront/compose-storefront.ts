@@ -1,7 +1,7 @@
 /** Composition of the storefront routes: the only place their concrete functions are wired. */
 import { resolveService } from "@the-market/core";
 import type { ModuleRegistry } from "@the-market/core";
-import { DEFAULT_PAGES, DEFAULT_SECTIONS, escapeHtml, formatPrice, readSettingText, renderPage } from "@the-market/theme-engine";
+import { DEFAULT_PAGES, DEFAULT_SECTIONS, escapeHtml, formatPrice, readSettingText, renderPage, wrapDocument } from "@the-market/theme-engine";
 import type { Route } from "../hono-adapter.ts";
 import { handleHomePage, handleProductPage, renderStorePage } from "./storefront-handlers.ts";
 import type { StorefrontSteps } from "./storefront-handlers.ts";
@@ -15,8 +15,8 @@ export function buildStorefrontSteps(input: { registry: ModuleRegistry }): Store
     listProducts: service("catalog", "listProducts") as StorefrontSteps["listProducts"],
     findPage: service("pages", "findPage") as StorefrontSteps["findPage"],
     defaultPages: DEFAULT_PAGES,
-    toCard: (product) => ({ handle: product.handle, title: product.title, priceText: formatPrice(product) }),
-    render: (request) => renderPage({ ...request, definitions: DEFAULT_SECTIONS, escape: escapeHtml, readText: readSettingText }),
+    toCard: (product) => ({ productId: product.productId, handle: product.handle, title: product.title, priceText: formatPrice(product) }),
+    render: (request) => renderPage({ ...request, definitions: DEFAULT_SECTIONS, escape: escapeHtml, readText: readSettingText, wrap: wrapDocument }),
   };
   return steps;
 }

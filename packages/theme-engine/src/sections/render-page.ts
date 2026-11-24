@@ -1,5 +1,6 @@
 /** Renders a page, an ordered list of sections, into a full HTML document. */
 import type { PageData, PageSection, SectionDefinition } from "./section-types.ts";
+import { wrapDocument } from "./shop-pages.ts";
 
 /** What a store shows when it has not saved a page: it still sells with no agent. */
 export const DEFAULT_PAGES: Readonly<Record<string, PageSection[]>> = Object.freeze({
@@ -21,6 +22,7 @@ export function renderPage(input: {
   definitions: readonly SectionDefinition[];
   escape: (text: string) => string;
   readText: (value: unknown) => string;
+  wrap: typeof wrapDocument;
 }): string {
   const definitions = new Map(input.definitions.map((definition) => [definition.sectionType, definition]));
   const body = input.sections
@@ -34,5 +36,5 @@ export function renderPage(input: {
         }) ?? "",
     )
     .join("");
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${input.escape(input.pageData.storeName)}</title></head><body><main>${body}</main></body></html>`;
+  return input.wrap({ title: input.pageData.storeName, body, escape: input.escape });
 }

@@ -7,10 +7,10 @@ import type { PageData } from "./section-types.ts";
 const pageData: PageData = {
   storeName: "Demo store",
   products: [
-    { handle: "rope-lead", title: "Rope lead", priceText: "£18.00" },
-    { handle: "evil", title: "<script>alert(1)</script>", priceText: "£1.00" },
+    { productId: "p-lead", handle: "rope-lead", title: "Rope lead", priceText: "£18.00" },
+    { productId: "p-evil", handle: "evil", title: "<script>alert(1)</script>", priceText: "£1.00" },
   ],
-  product: { handle: "rope-lead", title: "Rope lead", priceText: "£18.00" },
+  product: { productId: "p-lead", handle: "rope-lead", title: "Rope lead", priceText: "£18.00" },
 };
 
 function render(sectionType: string, settings: Record<string, unknown>): string {

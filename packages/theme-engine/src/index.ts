@@ -7,3 +7,5 @@ export { DEFAULT_SECTIONS } from "./sections/default-sections.ts";
 export { escapeHtml, readSettingText } from "./sections/escape-html.ts";
 export type { PageData, PageSection, ProductCard, SectionDefinition } from "./sections/section-types.ts";
 export { DEFAULT_PAGES, formatPrice, renderPage } from "./sections/render-page.ts";
+export { renderCartPage, renderOrderPage, wrapDocument } from "./sections/shop-pages.ts";
+export type { CartPageLine } from "./sections/shop-pages.ts";

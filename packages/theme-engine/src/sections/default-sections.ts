@@ -39,6 +39,8 @@ export const DEFAULT_SECTIONS: readonly SectionDefinition[] = Object.freeze([
     renderSection: ({ pageData, escape }) =>
       pageData.product === undefined
         ? ""
-        : `<section class="product-detail"><h1>${escape(pageData.product.title)}</h1><p class="price">${escape(pageData.product.priceText)}</p></section>`,
+        : `<section class="product-detail"><h1>${escape(pageData.product.title)}</h1><p class="price">${escape(pageData.product.priceText)}</p>` +
+          `<form method="post" action="/cart/lines"><input type="hidden" name="productId" value="${escape(pageData.product.productId)}">` +
+          `<input type="number" name="quantity" value="1" min="1" max="99"><button>Add to cart</button></form></section>`,
   },
 ]);
