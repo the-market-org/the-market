@@ -13,6 +13,7 @@ import { handleHealth } from "./health-handler.ts";
 import { answerWithRoute, mountRoutes } from "./hono-adapter.ts";
 import { guardMerchantRoutes, isMerchantOf, matchesMerchant, matchesMerchantToken, readBearerToken } from "./merchant-token.ts";
 import { composeAgentCardRoute } from "./a2a/compose-a2a.ts";
+import { composeConnectionRoutes } from "./connections/compose-connections.ts";
 import { composeAgentRoutes } from "./mcp/compose-mcp.ts";
 import { handleListProducts } from "./products-handler.ts";
 import { composeStorefrontRoutes } from "./storefront/compose-storefront.ts";
@@ -30,6 +31,8 @@ export async function composeServer(input: {
   identity: IdentitySocket;
   /** True when identity tokens can be verified (a secret is configured). */
   identityEnabled: boolean;
+  /** Allow plain-http agent event URLs to this machine; never in production. */
+  allowLocalHttp?: boolean;
 }): Promise<Hono> {
   const resolveTenantService = resolveService({
     registry: input.registry,
@@ -64,7 +67,12 @@ export async function composeServer(input: {
     },
   ];
   const merchantEnabled = input.merchantToken !== "" || input.identityEnabled;
-  const merchantRoutes = merchantEnabled ? composeChangeSetRoutes({ registry: input.registry, capabilities: input.capabilities }) : [];
+  const merchantRoutes = merchantEnabled
+    ? [
+        ...composeChangeSetRoutes({ registry: input.registry, capabilities: input.capabilities }),
+        ...composeConnectionRoutes({ registry: input.registry, allowLocalHttp: input.allowLocalHttp === true }),
+      ]
+    : [];
   const matchesRequest = (request: { authorization: string; tenantId: string }) =>
     matchesMerchant({
       ...request,

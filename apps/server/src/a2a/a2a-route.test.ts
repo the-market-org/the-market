@@ -7,6 +7,7 @@ const registry = {
   tenancy: { resolveTenant: async (request: { host: string }) => ({ "shop-a.example": "tenant-a" })[request.host], findTenant: async () => ({ name: "Leads & Co" }) },
   catalog: { listProducts: async () => [] },
   pages: { findPage: async () => undefined },
+  connections: { saveConnection: async () => ({ signingSecret: "" }), findConnection: async () => undefined, removeConnection: async () => {} },
   changes: {
     createChangeSet: async () => changeSet,
     findChangeSet: async (keys: { tenantId: string; changeSetId: string }) => (keys.tenantId === "tenant-a" && keys.changeSetId === "set_1" ? changeSet : undefined),
