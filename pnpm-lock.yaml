@@ -193,6 +193,9 @@ importers:
       '@the-market/module-tenancy':
         specifier: workspace:*
         version: link:../../modules/tenancy
+      '@the-market/sockets':
+        specifier: workspace:*
+        version: link:../../packages/sockets
       hono:
         specifier: 4.13.18
         version: 4.13.18
@@ -249,6 +252,8 @@ importers:
       '@the-market/core':
         specifier: workspace:*
         version: link:../core
+
+  packages/sockets: {}
 
   packages/theme-engine:
     dependencies:
