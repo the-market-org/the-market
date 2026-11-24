@@ -21,7 +21,7 @@ const fakeRegistry = {
 };
 
 function requestProducts(host: string): Promise<Response> {
-  return composeServer({ readUptime: () => 0, registry: fakeRegistry, capabilities: {}, merchantToken: "" }).then((app) =>
+  return composeServer({ readUptime: () => 0, registry: fakeRegistry, capabilities: {}, merchantToken: "", identity: { verifyToken: async () => undefined }, identityEnabled: false }).then((app) =>
     app.request("/api/products", { headers: { host } }),
   );
 }

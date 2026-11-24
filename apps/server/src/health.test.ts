@@ -5,7 +5,7 @@ import { composeServer } from "./compose.ts";
 const fakeRegistry = { tenancy: { resolveTenant: async () => undefined }, catalog: { listProducts: async () => [] } };
 
 test("GET /health reports the loaded modules", async () => {
-  const app = await composeServer({ readUptime: () => 12.4, registry: fakeRegistry, capabilities: {}, merchantToken: "" });
+  const app = await composeServer({ readUptime: () => 12.4, registry: fakeRegistry, capabilities: {}, merchantToken: "", identity: { verifyToken: async () => undefined }, identityEnabled: false });
 
   const response = await app.request("/health");
 
@@ -15,6 +15,6 @@ test("GET /health reports the loaded modules", async () => {
 });
 
 test("unknown routes answer 404", async () => {
-  const app = await composeServer({ readUptime: () => 0, registry: fakeRegistry, capabilities: {}, merchantToken: "" });
+  const app = await composeServer({ readUptime: () => 0, registry: fakeRegistry, capabilities: {}, merchantToken: "", identity: { verifyToken: async () => undefined }, identityEnabled: false });
   assert.equal((await app.request("/nope")).status, 404);
 });

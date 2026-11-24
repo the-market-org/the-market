@@ -25,6 +25,7 @@ test("GET /api/capabilities lists each capability's public fields, sorted by nam
     readUptime: () => 0,
     registry: fakeRegistry,
     merchantToken: "",
+    identity: { verifyToken: async () => undefined }, identityEnabled: false,
     capabilities: {
       "catalog.product.rename": buildCapability("catalog.product.rename"),
       "catalog.product.archive": buildCapability("catalog.product.archive"),
@@ -50,7 +51,7 @@ test("GET /api/capabilities lists each capability's public fields, sorted by nam
 });
 
 test("GET /api/capabilities answers without a store host", async () => {
-  const app = await composeServer({ readUptime: () => 0, registry: fakeRegistry, capabilities: {}, merchantToken: "" });
+  const app = await composeServer({ readUptime: () => 0, registry: fakeRegistry, capabilities: {}, merchantToken: "", identity: { verifyToken: async () => undefined }, identityEnabled: false });
 
   const response = await app.request("http://nobody.example/api/capabilities");
 

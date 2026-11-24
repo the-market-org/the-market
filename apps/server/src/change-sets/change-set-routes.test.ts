@@ -43,7 +43,7 @@ function buildRegistry() {
 }
 
 async function buildClient(merchantToken = "s3cret") {
-  const app = await composeServer({ readUptime: () => 0, registry: buildRegistry(), capabilities: { [renameLike.name]: renameLike }, merchantToken });
+  const app = await composeServer({ readUptime: () => 0, registry: buildRegistry(), capabilities: { [renameLike.name]: renameLike }, merchantToken, identity: { verifyToken: async () => undefined }, identityEnabled: false });
   return (input: { method?: string; path: string; host?: string; body?: string }) =>
     app.request(input.path, {
       method: input.method ?? "GET",
