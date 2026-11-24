@@ -8,3 +8,4 @@ export type {
   StoredFile,
 } from "./socket-types.ts";
 export { FILE_KEY_PATTERN } from "./socket-types.ts";
+export { buildTokenIdentity } from "./token-identity.ts";
