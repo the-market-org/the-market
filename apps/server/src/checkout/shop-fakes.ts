@@ -20,6 +20,9 @@ export function buildShopRegistry(orders: Array<{ orderId: string; orderNumber: 
       findCart,
       setLine: async (line: { tenantId: string; cartId: string; productId: string; quantity: number }) => {
         const cart = await findCart(line);
+        if (!(Number.isInteger(line.quantity) && line.quantity >= 0 && line.quantity <= 99)) {
+          throw new Error("Invalid input: quantity must be a whole number from 0 to 99");
+        }
         if (cart === undefined) {
           throw new Error("Cart not found");
         }
@@ -45,6 +48,7 @@ export function buildShopRegistry(orders: Array<{ orderId: string; orderNumber: 
         Object.assign(order, { status: "paid", paymentReference: request.paymentReference });
         return order;
       },
+      findOrder: async (request: { orderId: string }) => orders.find((stored) => stored.orderId === request.orderId),
       cancelOrder: async (request: { orderId: string }) => {
         const order = orders.find((stored) => stored.orderId === request.orderId) as (typeof orders)[number];
         Object.assign(order, { status: "canceled" });
