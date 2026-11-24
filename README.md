@@ -72,6 +72,26 @@ pnpm dev
 ```
 
 Then open `http://localhost:3000/health`. Set `PORT` to use another port.
+Set `MERCHANT_TOKEN` to enable the merchant routes (`/api/change-sets`); they then need `Authorization: Bearer <token>`.
+
+## Sockets
+
+The store depends on four interfaces with plain defaults, chosen from the environment:
+
+| Variable | Effect |
+|---|---|
+| `IDENTITY_SECRET` | Merchants sign in with HS256 tokens signed with it; the store comes from `app_metadata.tenant_id`. Unset: every token is refused. |
+| `FILES_FOLDER` | Files are stored in that folder, one subfolder per store. Unset: kept in memory. |
+
+Mail is kept in an in-memory outbox and logged; app connections wait for the store owner's decision.
+
+## Example agent
+
+A scripted agent with no model that builds a starter store through the agent connection (MCP and A2A) and asks the merchant to approve it. With the server running with `IDENTITY_SECRET` set, and an agent token for the store:
+
+```bash
+AGENT_TOKEN=<agent token> pnpm example-agent --store http://localhost:3000 --host localhost --wait 30
+```
 
 ## Customising
 

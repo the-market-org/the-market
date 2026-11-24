@@ -12,6 +12,7 @@ export interface TenantRecord {
 /** What the services need from storage. The Prisma adapter implements it. */
 export interface TenancyDatabase {
   findTenantByHost: (input: { host: string }) => Promise<TenantRecord | undefined>;
+  findTenantById: (input: { tenantId: string }) => Promise<TenantRecord | undefined>;
   insertTenant: (input: { slug: string; name: string; primaryHost: string }) => Promise<TenantRecord>;
 }
 
@@ -64,6 +65,7 @@ export function buildTenancyServices(input: {
         name: tenant.name,
         primaryHost: input.normalise(tenant.primaryHost),
       }),
+    findTenant: (request: { tenantId: string }) => input.database.findTenantById({ tenantId: request.tenantId }),
     ensureTenant: (tenant: { slug: string; name: string; primaryHost: string }) =>
       input.ensure({
         ...tenant,

@@ -3,3 +3,7 @@ export type { PageValues, RenderFragment, SlotFragment } from "./slot-registry.t
 export { composeSlotHandler } from "./compose.ts";
 export { renderSlotPlaceholder } from "./partial-handler.ts";
 export { addFragment, listSlotFragments } from "./slot-registry.ts";
+export { DEFAULT_SECTIONS } from "./sections/default-sections.ts";
+export { escapeHtml, readSettingText } from "./sections/escape-html.ts";
+export type { PageData, PageSection, ProductCard, SectionDefinition } from "./sections/section-types.ts";
+export { DEFAULT_PAGES, formatPrice, renderPage } from "./sections/render-page.ts";

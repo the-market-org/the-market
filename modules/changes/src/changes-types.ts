@@ -1,0 +1,49 @@
+/** One worked-out change inside a change set, in apply order. */
+export interface ChangeItemRecord {
+  itemId: string;
+  position: number;
+  capabilityName: string;
+  summary: string;
+  change: unknown;
+  revert: unknown;
+}
+
+/** A group of changes that is approved, applied and reverted as one. */
+export interface ChangeSetRecord {
+  changeSetId: string;
+  tenantId: string;
+  title: string;
+  state: string;
+  proposedBy: string;
+  approvedBy: string;
+  failureReason: string;
+  items: ChangeItemRecord[];
+}
+
+/** What the services need from storage. The Prisma adapter implements it. */
+export interface ChangesDatabase {
+  insertChangeSet: (input: { tenantId: string; title: string; proposedBy: string }) => Promise<ChangeSetRecord>;
+  /** Items are ordered by position. Returns undefined for another tenant's change set. */
+  findChangeSet: (input: { tenantId: string; changeSetId: string }) => Promise<ChangeSetRecord | undefined>;
+  /** Stores the item at the next position. */
+  insertChangeItem: (input: {
+    tenantId: string;
+    changeSetId: string;
+    capabilityName: string;
+    summary: string;
+    change: unknown;
+    revert: unknown;
+  }) => Promise<ChangeItemRecord>;
+  /**
+   * Moves the state only when tenant, id and current state all match. Returns rows changed, 0 or 1.
+   * An empty approvedBy or failureReason leaves the stored value unchanged.
+   */
+  updateState: (input: {
+    tenantId: string;
+    changeSetId: string;
+    fromState: string;
+    toState: string;
+    approvedBy: string;
+    failureReason: string;
+  }) => Promise<number>;
+}

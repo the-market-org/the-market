@@ -43,3 +43,12 @@ test("an optional field may be absent but must have its type when present", () =
     "Field priceMinor must be a number",
   ]);
 });
+
+test("array and object fields are checked by shape", () => {
+  const schema = { type: "object", properties: { sections: { type: "array" }, settings: { type: "object" } } };
+  const check = (candidate: unknown) => listInputProblems({ inputSchema: schema, candidate });
+
+  assert.deepEqual(check({ sections: [], settings: {} }), []);
+  assert.deepEqual(check({ sections: {}, settings: [] }), ["Field sections must be an array", "Field settings must be an object"]);
+  assert.deepEqual(check({ settings: null }), ["Field settings must be an object"]);
+});
