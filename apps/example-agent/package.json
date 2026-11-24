@@ -1,0 +1,10 @@
+{
+  "name": "@the-market/example-agent",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@the-market/a2a-gateway": "workspace:*",
+    "@the-market/core": "workspace:*"
+  }
+}

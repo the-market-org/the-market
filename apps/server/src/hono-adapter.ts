@@ -12,10 +12,14 @@ export interface RouteRequest {
   pathParams: Record<string, string>;
   queryValues: Record<string, string>;
   bodyText: string;
+  /** The Authorization header, or "" when absent. */
+  authorization: string;
+  /** Every request header, names lowercased. */
+  headerValues: Record<string, string>;
 }
 
 export interface Route {
-  method: "GET" | "POST";
+  method: "GET" | "POST" | "PUT" | "DELETE";
   path: string;
   /** When true, the request's host must belong to a tenant or the reply is 404. */
   tenantScoped: boolean;
@@ -29,12 +33,24 @@ export function readHost(context: Context): string {
   return context.req.header("host") ?? new URL(context.req.url).host;
 }
 
+/** Reads the Authorization header, or "" when absent. */
+export function readAuthorization(context: Context): string {
+  return context.req.header("authorization") ?? "";
+}
+
+/** Reads every request header; Hono gives the names lowercased. */
+export function readHeaders(context: Context): Record<string, string> {
+  return context.req.header();
+}
+
 /** Resolves the tenant, turns the request into plain values, runs the handler. */
 export async function answerWithRoute(input: {
   context: Context;
   route: Route;
   resolveTenant: ResolveTenant;
   readRequestHost: (context: Context) => string;
+  readRequestAuthorization: (context: Context) => string;
+  readRequestHeaders: (context: Context) => Record<string, string>;
 }): Promise<Response> {
   const tenantId = input.route.tenantScoped
     ? await input.resolveTenant(input.readRequestHost(input.context))
@@ -47,6 +63,8 @@ export async function answerWithRoute(input: {
     pathParams: input.context.req.param(),
     queryValues: input.context.req.query(),
     bodyText: await input.context.req.text(),
+    authorization: input.readRequestAuthorization(input.context),
+    headerValues: input.readRequestHeaders(input.context),
   });
   return input.context.body(reply.bodyText, reply.status as ContentfulStatusCode, reply.headers);
 }
@@ -65,6 +83,8 @@ export function mountRoutes(input: {
         route,
         resolveTenant: input.resolveTenant,
         readRequestHost: readHost,
+        readRequestAuthorization: readAuthorization,
+        readRequestHeaders: readHeaders,
       }),
     );
   }

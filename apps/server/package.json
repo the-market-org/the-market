@@ -5,9 +5,18 @@
   "type": "module",
   "dependencies": {
     "@hono/node-server": "2.1.8",
+    "@the-market/a2a-gateway": "workspace:*",
     "@the-market/core": "workspace:*",
+    "@the-market/module-carts": "workspace:*",
     "@the-market/module-catalog": "workspace:*",
+    "@the-market/module-changes": "workspace:*",
+    "@the-market/module-connections": "workspace:*",
+    "@the-market/module-orders": "workspace:*",
+    "@the-market/module-pages": "workspace:*",
     "@the-market/module-tenancy": "workspace:*",
+    "@the-market/payment": "workspace:*",
+    "@the-market/sockets": "workspace:*",
+    "@the-market/theme-engine": "workspace:*",
     "hono": "4.13.18"
   }
 }

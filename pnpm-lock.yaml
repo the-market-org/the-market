@@ -176,23 +176,72 @@ importers:
         specifier: ^5.9.0
         version: 5.9.3
 
+  apps/example-agent:
+    dependencies:
+      '@the-market/a2a-gateway':
+        specifier: workspace:*
+        version: link:../../packages/a2a-gateway
+      '@the-market/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+
   apps/server:
     dependencies:
       '@hono/node-server':
         specifier: 2.1.8
         version: 2.1.8(hono@4.13.18)
+      '@the-market/a2a-gateway':
+        specifier: workspace:*
+        version: link:../../packages/a2a-gateway
       '@the-market/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@the-market/module-carts':
+        specifier: workspace:*
+        version: link:../../modules/carts
       '@the-market/module-catalog':
         specifier: workspace:*
         version: link:../../modules/catalog
+      '@the-market/module-changes':
+        specifier: workspace:*
+        version: link:../../modules/changes
+      '@the-market/module-connections':
+        specifier: workspace:*
+        version: link:../../modules/connections
+      '@the-market/module-orders':
+        specifier: workspace:*
+        version: link:../../modules/orders
+      '@the-market/module-pages':
+        specifier: workspace:*
+        version: link:../../modules/pages
       '@the-market/module-tenancy':
         specifier: workspace:*
         version: link:../../modules/tenancy
+      '@the-market/payment':
+        specifier: workspace:*
+        version: link:../../packages/payment
+      '@the-market/sockets':
+        specifier: workspace:*
+        version: link:../../packages/sockets
+      '@the-market/theme-engine':
+        specifier: workspace:*
+        version: link:../../packages/theme-engine
       hono:
         specifier: 4.13.18
         version: 4.13.18
+
+  modules/carts:
+    dependencies:
+      '@prisma/client':
+        specifier: 6.19.3
+        version: 6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3)
+      '@the-market/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+    devDependencies:
+      prisma:
+        specifier: 6.19.3
+        version: 6.19.3(typescript@5.9.3)
 
   modules/catalog:
     dependencies:
@@ -202,6 +251,61 @@ importers:
       '@the-market/core':
         specifier: workspace:*
         version: link:../../packages/core
+    devDependencies:
+      prisma:
+        specifier: 6.19.3
+        version: 6.19.3(typescript@5.9.3)
+
+  modules/changes:
+    dependencies:
+      '@prisma/client':
+        specifier: 6.19.3
+        version: 6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3)
+      '@the-market/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+    devDependencies:
+      prisma:
+        specifier: 6.19.3
+        version: 6.19.3(typescript@5.9.3)
+
+  modules/connections:
+    dependencies:
+      '@prisma/client':
+        specifier: 6.19.3
+        version: 6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3)
+      '@the-market/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+    devDependencies:
+      prisma:
+        specifier: 6.19.3
+        version: 6.19.3(typescript@5.9.3)
+
+  modules/orders:
+    dependencies:
+      '@prisma/client':
+        specifier: 6.19.3
+        version: 6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3)
+      '@the-market/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+    devDependencies:
+      prisma:
+        specifier: 6.19.3
+        version: 6.19.3(typescript@5.9.3)
+
+  modules/pages:
+    dependencies:
+      '@prisma/client':
+        specifier: 6.19.3
+        version: 6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3)
+      '@the-market/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@the-market/theme-engine':
+        specifier: workspace:*
+        version: link:../../packages/theme-engine
     devDependencies:
       prisma:
         specifier: 6.19.3
@@ -233,6 +337,8 @@ importers:
       '@the-market/core':
         specifier: workspace:*
         version: link:../core
+
+  packages/sockets: {}
 
   packages/theme-engine:
     dependencies:

@@ -16,14 +16,17 @@ function buildCapability(name: string): CapabilityDefinition {
 }
 
 const fakeRegistry = {
-  tenancy: { resolveTenant: async () => undefined },
+  tenancy: { resolveTenant: async () => undefined, findTenant: async () => undefined },
   catalog: { listProducts: async () => [] },
+  pages: { findPage: async () => undefined },
 };
 
 test("GET /api/capabilities lists each capability's public fields, sorted by name", async () => {
   const app = await composeServer({
     readUptime: () => 0,
     registry: fakeRegistry,
+    merchantToken: "",
+    identity: { verifyToken: async () => undefined }, identityEnabled: false,
     capabilities: {
       "catalog.product.rename": buildCapability("catalog.product.rename"),
       "catalog.product.archive": buildCapability("catalog.product.archive"),
@@ -49,7 +52,7 @@ test("GET /api/capabilities lists each capability's public fields, sorted by nam
 });
 
 test("GET /api/capabilities answers without a store host", async () => {
-  const app = await composeServer({ readUptime: () => 0, registry: fakeRegistry, capabilities: {} });
+  const app = await composeServer({ readUptime: () => 0, registry: fakeRegistry, capabilities: {}, merchantToken: "", identity: { verifyToken: async () => undefined }, identityEnabled: false });
 
   const response = await app.request("http://nobody.example/api/capabilities");
 

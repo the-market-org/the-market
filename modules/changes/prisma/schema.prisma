@@ -1,0 +1,44 @@
+// The changes module's own schema. Run Prisma through `pnpm db changes ...`,
+// which points MODULE_DATABASE_URL at the "changes" PostgreSQL schema.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("MODULE_DATABASE_URL")
+}
+
+model ChangeSet {
+  changeSetId   String       @id @default(uuid()) @map("change_set_id") @db.Uuid
+  tenantId      String       @map("tenant_id") @db.Uuid
+  title         String
+  state         String       @default("draft") // draft | approved | rejected | applying | applied | failed | reverting | reverted
+  proposedBy    String       @map("proposed_by")
+  approvedBy    String       @default("") @map("approved_by")
+  failureReason String       @default("") @map("failure_reason")
+  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+  items         ChangeItem[]
+
+  @@index([tenantId])
+  @@map("change_sets")
+}
+
+model ChangeItem {
+  itemId         String    @id @default(uuid()) @map("item_id") @db.Uuid
+  tenantId       String    @map("tenant_id") @db.Uuid
+  changeSetId    String    @map("change_set_id") @db.Uuid
+  position       Int
+  capabilityName String    @map("capability_name")
+  summary        String
+  change         Json
+  revert         Json
+  changeSet      ChangeSet @relation(fields: [changeSetId], references: [changeSetId])
+
+  @@unique([changeSetId, position])
+  @@index([tenantId])
+  @@map("change_items")
+}
