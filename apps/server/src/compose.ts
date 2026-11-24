@@ -6,13 +6,13 @@ import { resolveService } from "@the-market/core";
 import type { CapabilityRegistry, ModuleRegistry } from "@the-market/core";
 import type { IdentitySocket } from "@the-market/sockets";
 import { Hono } from "hono";
-import { guardAgentRoutes, hasAgentRole, matchesAgent } from "./agent-access.ts";
+import { hasAgentRole, matchesAgent } from "./agent-access.ts";
 import { handleListCapabilities } from "./capabilities-handler.ts";
 import { composeChangeSetRoutes } from "./change-sets/compose-change-sets.ts";
 import { handleHealth } from "./health-handler.ts";
 import { answerWithRoute, mountRoutes } from "./hono-adapter.ts";
 import { guardMerchantRoutes, isMerchantOf, matchesMerchant, matchesMerchantToken, readBearerToken } from "./merchant-token.ts";
-import { composeMcpRoutes } from "./mcp/compose-mcp.ts";
+import { composeAgentRoutes } from "./mcp/compose-mcp.ts";
 import { handleListProducts } from "./products-handler.ts";
 import { composeStorefrontRoutes } from "./storefront/compose-storefront.ts";
 import type { Route } from "./hono-adapter.ts";
@@ -79,9 +79,10 @@ export async function composeServer(input: {
       ...routes,
       ...composeStorefrontRoutes({ registry: input.registry }),
       ...guardMerchantRoutes({ routes: merchantRoutes, enabled: merchantEnabled, matches: matchesRequest }),
-      ...guardAgentRoutes({
-        routes: composeMcpRoutes({ extraMethods: [] }),
+      ...composeAgentRoutes({
         enabled: input.identityEnabled,
+        registry: input.registry,
+        capabilities: input.capabilities,
         matches: (request) =>
           matchesAgent({ ...request, verifyToken: input.identity.verifyToken, readBearer: readBearerToken, hasRole: hasAgentRole }),
       }),
