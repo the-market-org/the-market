@@ -12,5 +12,7 @@
 **Artifacts:**
 - [D] `Secure` follows `allowLocalHttp`, so one switch decides both plain http and cookie security — invalidates when development runs over https [low] [2026-11-25]
 
+**Closing state:** #140 is open and CI passes. Waiting for merge: #130 to #140, and `the-market-org/commerce-agent` #1. The loop's next wakeup starts task 3. No critical or volatile artifact came up, so `_context.md` is unchanged.
+
 **Next steps:**
 - Task 3: the content security policy and the other response headers.
