@@ -17,7 +17,7 @@ import type { CheckoutActions } from "./checkout-workflow.ts";
 import { priceCart, priceLine } from "./price-cart.ts";
 
 /** Without a configured provider, checkout uses the fake one, which never declines. */
-export function composeShopperRoutes(input: { registry: ModuleRegistry; paymentProvider: PaymentProvider | undefined }): Route[] {
+export function composeShopperRoutes(input: { registry: ModuleRegistry; paymentProvider: PaymentProvider | undefined; cookieAttributes: string }): Route[] {
   const call = (moduleName: string, serviceName: string) => (request: unknown) =>
     (resolveService({ registry: input.registry, moduleName, serviceName }) as (request: unknown) => Promise<never>)(request);
   const actions: CartActions = {
@@ -63,6 +63,7 @@ export function composeShopperRoutes(input: { registry: ModuleRegistry; paymentP
     statusFor: (message) => answerChangeSetError(message).status,
     describe: describeError,
     recordEvent: buildEventRecorder(input.registry),
+    cookieAttributes: input.cookieAttributes,
   });
   return [
     ...cartPages,

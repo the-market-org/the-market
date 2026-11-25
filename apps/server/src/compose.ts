@@ -20,6 +20,7 @@ import { composePlatformRoutes, guardPlatformRoutes, matchesPlatformToken } from
 import { composePlatformConnectionRoutes } from "./platform-connections.ts";
 import type { AppAccess } from "./apps/compose-apps.ts";
 import { composeShopperRoutes } from "./checkout/compose-checkout.ts";
+import { buildCookieAttributes } from "./cookie-attributes.ts";
 import { composeConnectionRoutes } from "./connections/compose-connections.ts";
 import { composeAgentRoutes } from "./mcp/compose-mcp.ts";
 import { handleListProducts } from "./products-handler.ts";
@@ -79,6 +80,7 @@ export async function composeServer(input: {
       handleRequest: () => handleListCapabilities({ capabilities: input.capabilities }),
     },
   ];
+  const cookieAttributes = buildCookieAttributes({ secure: input.allowLocalHttp !== true });
   const merchantEnabled = input.merchantToken !== "" || input.identityEnabled;
   const merchantRoutes = merchantEnabled
     ? [
@@ -101,9 +103,9 @@ export async function composeServer(input: {
     app: new Hono(),
     routes: [
       ...routes,
-      ...composeStorefrontRoutes({ registry: input.registry, sendRequest: input.appAccess?.sendRequest }),
+      ...composeStorefrontRoutes({ registry: input.registry, sendRequest: input.appAccess?.sendRequest, cookieAttributes }),
       composeAgentCardRoute({ registry: input.registry }),
-      ...composeShopperRoutes({ registry: input.registry, paymentProvider: input.paymentProvider }),
+      ...composeShopperRoutes({ registry: input.registry, paymentProvider: input.paymentProvider, cookieAttributes }),
       ...guardMerchantRoutes({ routes: merchantRoutes, enabled: merchantEnabled, matches: matchesRequest }),
       ...guardPlatformRoutes({ routes: [...composePlatformRoutes({ registry: input.registry }), ...composePlatformConnectionRoutes({ registry: input.registry, allowLocalHttp: input.allowLocalHttp === true })], platformToken: input.platformToken ?? "", matches: matchesPlatformToken }),
       ...composeAgentRoutes({

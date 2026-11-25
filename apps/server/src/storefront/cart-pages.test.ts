@@ -21,7 +21,7 @@ test("a shopper adds to cart, sees it, pays and is thanked", async () => {
   const browse = await buildBrowser();
   const added = await browse({ method: "POST", path: "/cart/lines", form: { productId: LEAD, quantity: "2" } });
   assert.deepEqual([added.status, added.location], [303, "/cart"]);
-  assert.match(added.setCookie, /^cart_id=[^;]+; Path=\/; HttpOnly; SameSite=Lax; Max-Age=2592000$/);
+  assert.match(added.setCookie, /^cart_id=[^;]+; Path=\/; HttpOnly; SameSite=Lax; Secure; Max-Age=2592000$/);
 
   await browse({ method: "POST", path: "/cart/lines", form: { productId: LEAD, quantity: "1" } });
   const cart = await browse({ path: "/cart" });
@@ -30,7 +30,7 @@ test("a shopper adds to cart, sees it, pays and is thanked", async () => {
   const paid = await browse({ method: "POST", path: "/cart/checkout" });
   assert.equal(paid.status, 303);
   assert.match(String(paid.location), /^\/orders\/order_1$/);
-  assert.match(paid.setCookie, /^cart_id=; Path=\/; HttpOnly; SameSite=Lax; Max-Age=0$/);
+  assert.match(paid.setCookie, /^cart_id=; Path=\/; HttpOnly; SameSite=Lax; Secure; Max-Age=0$/);
 
   const thanks = await browse({ path: String(paid.location) });
   assert.match(thanks.html, /<h1>Thank you<\/h1><p>Order 1 is paid: £54.00\.<\/p>/);

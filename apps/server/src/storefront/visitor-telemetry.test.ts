@@ -19,7 +19,7 @@ test("a first visit gets a visitor cookie, and views, adds and payments are reco
   const events: Array<Record<string, string>> = [];
   const browse = await buildShop(async (event) => void events.push(event));
   const first = await browse({ path: "/products/rope-lead" });
-  assert.match(first.setCookie, /^visitor_id=[0-9a-f-]{36}; Path=\/; HttpOnly; SameSite=Lax; Max-Age=31536000$/);
+  assert.match(first.setCookie, /^visitor_id=[0-9a-f-]{36}; Path=\/; HttpOnly; SameSite=Lax; Secure; Max-Age=31536000$/);
   const visitor = first.setCookie.split(";")[0] ?? "";
   assert.equal((await browse({ path: "/", cookie: visitor })).setCookie, "", "a known visitor keeps their cookie");
 

@@ -75,7 +75,7 @@ export function buildStorefrontSteps(input: { registry: ModuleRegistry; sendRequ
   return steps;
 }
 
-export function composeStorefrontRoutes(input: { registry: ModuleRegistry; sendRequest?: SendRequest }): Route[] {
+export function composeStorefrontRoutes(input: { registry: ModuleRegistry; sendRequest?: SendRequest; cookieAttributes: string }): Route[] {
   const steps = buildStorefrontSteps(input);
   const record = buildEventRecorder(input.registry);
   const variantSteps = buildVariantSteps(input.registry);
@@ -90,6 +90,7 @@ export function composeStorefrontRoutes(input: { registry: ModuleRegistry; sendR
         return run(sections === undefined ? steps : { ...steps, findPage: async () => sections });
       },
       record,
+      cookieAttributes: input.cookieAttributes,
     });
   return [
     { method: "GET", path: "/", tenantScoped: true, handleRequest: (request) => visit(request, "home", (pageSteps) => handleHomePage({ tenantId: request.tenantId, steps: pageSteps, renderPage: renderStorePage })) },
