@@ -3,6 +3,7 @@ import type { HttpReply, listInputProblems } from "@the-market/core";
 
 /** Status for each known error, matched by message prefix. Anything else is 422. */
 const ERROR_STATUSES: ReadonlyArray<readonly [string, number]> = Object.freeze([
+  ["Something went wrong", 500],
   ["Change set not found", 404],
   ["Cart not found", 404],
   ["Order not found", 404],

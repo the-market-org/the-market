@@ -3,6 +3,7 @@
  */
 import type { CapabilityRegistry } from "@the-market/core";
 import type { ChangeItemRecord } from "@the-market/module-changes";
+import { describeErrorSafely } from "../error-description.ts";
 
 type ItemStep = (input: { tenantId: string; item: ChangeItemRecord }) => Promise<void>;
 
@@ -12,10 +13,8 @@ export interface ApplyOutcome {
   failureMessage: string;
 }
 
-/** The message of anything thrown. */
-export function describeError(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
-}
+/** What a caller may see of anything thrown; internal errors become a logged reference. */
+export const describeError = describeErrorSafely;
 
 function findCapability(input: { capabilities: CapabilityRegistry; capabilityName: string }) {
   const capability = new Map(Object.entries(input.capabilities)).get(input.capabilityName);
