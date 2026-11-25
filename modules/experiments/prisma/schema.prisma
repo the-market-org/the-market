@@ -1,0 +1,59 @@
+// The experiments module's own schema. Run Prisma through `pnpm db experiments ...`,
+// which points MODULE_DATABASE_URL at the "experiments" PostgreSQL schema.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("MODULE_DATABASE_URL")
+}
+
+/// An anonymous storefront event. No IP address, user agent or account is stored.
+model TelemetryEvent {
+  eventId    String   @id @default(uuid()) @map("event_id") @db.Uuid
+  tenantId   String   @map("tenant_id") @db.Uuid
+  visitorKey String   @map("visitor_key")
+  eventName  String   @map("event_name") // page_view | add_to_cart | checkout_paid
+  pageKey    String   @default("") @map("page_key")
+  occurredAt DateTime @default(now()) @map("occurred_at") @db.Timestamptz
+
+  @@index([tenantId, visitorKey, eventName])
+  @@map("telemetry_events")
+}
+
+/// A test of one change set of page sections against the live page.
+model Experiment {
+  experimentId        String     @id @default(uuid()) @map("experiment_id") @db.Uuid
+  tenantId            String     @map("tenant_id") @db.Uuid
+  name                String
+  pageKey             String     @map("page_key")
+  variantChangeSetId  String     @map("variant_change_set_id") @db.Uuid
+  goalMetric          String     @map("goal_metric")
+  guardrailMetric     String     @map("guardrail_metric")
+  trafficPercent      Int        @default(50) @map("traffic_percent")
+  state               String     @default("running") // running | stopped | decided | adopted
+  startedAt           DateTime   @default(now()) @map("started_at") @db.Timestamptz
+  endsAt              DateTime   @map("ends_at") @db.Timestamptz
+  outcome             Json?
+  exposures           Exposure[]
+
+  @@index([tenantId, pageKey, state])
+  @@map("experiments")
+}
+
+/// The arm a visitor was shown, recorded the first time they saw the experiment's page.
+model Exposure {
+  experimentId String     @map("experiment_id") @db.Uuid
+  tenantId     String     @map("tenant_id") @db.Uuid
+  visitorKey   String     @map("visitor_key")
+  arm          String // control | variant
+  exposedAt    DateTime   @default(now()) @map("exposed_at") @db.Timestamptz
+  experiment   Experiment @relation(fields: [experimentId], references: [experimentId])
+
+  @@id([experimentId, visitorKey])
+  @@index([tenantId])
+  @@map("exposures")
+}
