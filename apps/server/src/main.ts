@@ -1,6 +1,11 @@
 /** Entry point: reads the environment, builds the server and starts listening. */
 import { serve } from "@hono/node-server";
 import { lookup } from "node:dns/promises";
+import { request as httpRequest } from "node:http";
+import { request as httpsRequest } from "node:https";
+import { isPrivateAddress } from "./apps/app-address.ts";
+import { buildCheckedLookup, isLocalDevelopment, sendAppRequest } from "./apps/app-transport.ts";
+import type { RequestFunction } from "./apps/app-transport.ts";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { composeModules } from "./compose-modules.ts";
 import { composeSockets } from "./compose-sockets.ts";
@@ -15,6 +20,7 @@ if (databaseUrl === undefined) {
 const { registry, capabilities, subscribeEvent } = await composeModules({ databaseUrl });
 composeEventDelivery({ registry, subscribeEvent, post: postWithFetch, readNow: Date.now, writeLine: (line) => console.log(line) });
 const merchantToken = process.env.MERCHANT_TOKEN ?? "";
+const allowLocalHttp = process.env.NODE_ENV !== "production";
 const sockets = composeSockets({
   environment: process.env,
   readNow: Date.now,
@@ -29,12 +35,21 @@ const app = await composeServer({
   platformToken: process.env.PLATFORM_TOKEN ?? "",
   identity: sockets.identity,
   identityEnabled: sockets.identityEnabled,
-  allowLocalHttp: process.env.NODE_ENV !== "production",
+  allowLocalHttp,
   appAccess: {
-    sendRequest: async (request) => {
-      const response = await fetch(request.url, { method: request.method, headers: request.headers, redirect: "error", signal: AbortSignal.timeout(5000), ...(request.method === "GET" ? {} : { body: request.bodyText }) });
-      return { status: response.status, headers: {}, bodyText: await response.text() };
-    },
+    sendRequest: (request) =>
+      sendAppRequest({
+        request,
+        allowLocalHttp,
+        isPrivate: isPrivateAddress,
+        lookup: buildCheckedLookup({
+          resolve: (hostname) => lookup(hostname, { all: true }),
+          isPrivate: isPrivateAddress,
+          allowPrivate: isLocalDevelopment({ url: new URL(request.url), allowLocalHttp }),
+        }),
+        timeoutMs: 5000,
+        requestFor: (protocol) => (protocol === "https:" ? httpsRequest : httpRequest) as unknown as RequestFunction,
+      }),
     lookupAddress: async (host) => (await lookup(host, { all: true }).catch(() => [])).map((entry) => entry.address),
     authoriser: sockets.authoriser,
   },
