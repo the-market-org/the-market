@@ -95,7 +95,7 @@ export async function composeServer(input: {
     app: new Hono(),
     routes: [
       ...routes,
-      ...composeStorefrontRoutes({ registry: input.registry }),
+      ...composeStorefrontRoutes({ registry: input.registry, sendRequest: input.appAccess?.sendRequest }),
       composeAgentCardRoute({ registry: input.registry }),
       ...composeShopperRoutes({ registry: input.registry, paymentProvider: input.paymentProvider }),
       ...guardMerchantRoutes({ routes: merchantRoutes, enabled: merchantEnabled, matches: matchesRequest }),

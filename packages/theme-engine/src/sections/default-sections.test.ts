@@ -11,6 +11,7 @@ const pageData: PageData = {
     { productId: "p-evil", handle: "evil", title: "<script>alert(1)</script>", priceText: "£1.00" },
   ],
   product: { productId: "p-lead", handle: "rope-lead", title: "Rope lead", priceText: "£18.00" },
+  slots: {},
 };
 
 function render(sectionType: string, settings: Record<string, unknown>): string {
@@ -42,7 +43,7 @@ test("product detail shows the current product, and nothing without one", () => 
 test("each section says which pages it may be used on", () => {
   assert.deepEqual(
     DEFAULT_SECTIONS.map((definition) => [definition.sectionType, [...definition.pageKeys]]),
-    [["hero", ["home"]], ["rich-text", ["home", "product"]], ["product-grid", ["home"]], ["product-detail", ["product"]]],
+    [["app-slot", ["home", "product"]], ["hero", ["home"]], ["rich-text", ["home", "product"]], ["product-grid", ["home"]], ["product-detail", ["product"]]],
   );
 });
 
