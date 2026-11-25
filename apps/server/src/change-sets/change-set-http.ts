@@ -9,6 +9,7 @@ const ERROR_STATUSES: ReadonlyArray<readonly [string, number]> = Object.freeze([
   ["Order not found", 404],
   ["App not found", 404],
   ["Experiment not found", 404],
+  ["Tenant not found", 404],
   ["invalid_json", 400],
   ["Unknown capability:", 400],
   ["Invalid input:", 400],
@@ -18,6 +19,8 @@ const ERROR_STATUSES: ReadonlyArray<readonly [string, number]> = Object.freeze([
   ["Cart is already checked out", 409],
   ["App is not waiting for a decision", 409],
   ["Experiment is still running", 409],
+  ["Host is already used", 409],
+  ["Slug is already used", 409],
   ["Experiment is not running", 409],
   ["Only an adopt or unclear outcome can be adopted", 409],
 ]);

@@ -9,14 +9,21 @@ import { composeModules } from "../apps/server/src/compose-modules.ts";
 
 type EnsureTenant = (input: { slug: string; name: string; primaryHost: string }) => Promise<{ tenantId: string }>;
 
+/** The store's slug for a host: `demo` for localhost, otherwise the host with anything but letters and digits as hyphens. */
+export function slugForHost(storeHost: string): string {
+  const host = storeHost.toLowerCase();
+  return host === "localhost" ? "demo" : host.replace(/[^a-z0-9]+/g, "-");
+}
+
 /** Ensures the demo tenant for a host, seeds its catalog and reports how many products were added. */
 export async function runSeed(input: {
   storeHost: string;
+  slugFor: (storeHost: string) => string;
   ensureTenant: EnsureTenant;
   seedProducts: (input: { tenantId: string }) => Promise<number>;
   writeLine: (line: string) => void;
 }): Promise<void> {
-  const tenant = await input.ensureTenant({ slug: "demo", name: "Demo store", primaryHost: input.storeHost });
+  const tenant = await input.ensureTenant({ slug: input.slugFor(input.storeHost), name: "Demo store", primaryHost: input.storeHost });
   const addedCount = await input.seedProducts({ tenantId: tenant.tenantId });
   input.writeLine(`Seeded ${addedCount} products for ${input.storeHost}`);
 }
@@ -36,6 +43,7 @@ async function seedDatabase(input: { databaseUrl: string | undefined; storeHost:
   const addProduct = resolveService({ registry, moduleName: "catalog", serviceName: "addProduct" });
   await runSeed({
     storeHost: input.storeHost,
+    slugFor: slugForHost,
     ensureTenant: resolveService({ registry, moduleName: "tenancy", serviceName: "ensureTenant" }) as EnsureTenant,
     seedProducts: (request) =>
       seedCatalog({
