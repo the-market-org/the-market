@@ -26,6 +26,7 @@ const app = await composeServer({
   registry,
   capabilities,
   merchantToken,
+  platformToken: process.env.PLATFORM_TOKEN ?? "",
   identity: sockets.identity,
   identityEnabled: sockets.identityEnabled,
   allowLocalHttp: process.env.NODE_ENV !== "production",
