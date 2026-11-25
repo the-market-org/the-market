@@ -24,6 +24,8 @@ test("apps and bindings belong to one store, and only active apps fill slots", {
     assert.deepEqual((await database.findAppByUrl({ tenantId: tenantA, baseUrl: app.baseUrl }))?.appId, installed.appId);
     assert.equal(await database.findApp({ tenantId: tenantB, appId: installed.appId }), undefined);
     assert.equal(await database.findApp({ tenantId: tenantA, appId: "not-a-uuid" }), undefined);
+    const withDecision = { tenantId: tenantA, appId: installed.appId, decision: "allowed" };
+    assert.equal((await database.findApp(withDecision))?.appId, installed.appId, "extra fields from a request are ignored");
 
     const binding = { ...keys, slotName: "product.below-detail", skillId: "review-stars", priority: 100 };
     await database.setBinding(binding);
