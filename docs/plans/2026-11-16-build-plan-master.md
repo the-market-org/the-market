@@ -141,7 +141,7 @@ export PATH="$HOME/Library/pnpm/bin:$PATH"; source ~/.nvm/nvm.sh; nvm use 22
 | 8 | Example agent | 7 | Scripted agent builds a change set over MCP | To write |
 | 9 | Cart, orders, checkout | 6 | Workflow runner, cart and order modules, fake payment gateway | To write |
 | 10 | Apps and slots | 5, 6 | Install by Agent Card, authoriser, fragments on the product page | To write |
-| 11 | Telemetry and experiments | 6, 4 | Events stored, variants assigned, outcome decided by statistics | To write |
+| 11 | Telemetry and experiments | 6, 4 | Events stored, variants assigned, outcome decided by statistics | `2026-11-25-wp11-telemetry-and-experiments.md` |
 | 12 | Publisher skeleton | 5, 7 | Creates a tenant, grants merchant access, registers the agent connection | To write |
 | 13 | CrewAI agent service | 8, 11 | Builder v0 and optimiser v0 on OpenRouter | To write |
 | 14 | Merchant screen | 6, 7 | Conversation, preview and approvals | To write |
