@@ -7,7 +7,7 @@
 2. give the merchant access;
 3. register the store's agent connection.
 
-The tenant app's part is open source and is built here. The publisher service itself is closed source, and this repository is **public**. Its code waits for the owner's decision on where closed code lives (part B).
+The tenant app's part is open source and is built here. The publisher service itself is closed source and is built in the private repository `the-market-org/factory` (part B), never here.
 
 **Architecture:** the tenant app gains platform routes under `/api/platform/`. They are not scoped to a store's host, and they are guarded by a separate `PLATFORM_TOKEN`. Merchant access needs no new code in the tenant app: the identity socket already accepts a signed token (the Supabase JWT shape: `sub`, `exp`, `app_metadata.tenant_id`, `app_metadata.role`), so the publisher, or Supabase Auth with the same secret, issues such tokens. The agent connection reuses the connections module's services.
 
@@ -101,12 +101,12 @@ On the development database:
 5. Seed products with `STORE_HOST=shop-d.localhost pnpm seed` and see them on the store.
 6. Apply a change set on shop D and see its `changes.change-set.moved` event arrive, signed, at the events address.
 
-## Part B: the publisher service (closed source, waiting for the owner)
+## Part B: the publisher service (closed source, in `the-market-org/factory`)
 
 The service signs merchants up and creates their stores through part A. It then grants sign-in with Supabase Auth, setting `app_metadata.tenant_id` and `app_metadata.role` on the user, and registers the store with the agent service (work package 13).
 
-**Waiting for:** the owner's choice of where closed code lives. This repository is public, and the architecture document says its visibility should change before closed code lands. Until then, part A is the whole of this package, and `scripts/create-store.ts` stands in for the publisher.
+**Where it lives:** owner decision, 2026-11-25: the publisher is built in the private repository `the-market-org/factory`, never in this public one. It talks to the tenant app only through part A's platform routes. Its plan is written in `factory` once part A is merged; until then, `scripts/create-store.ts` stands in for it.
 
 ## Done when
 
-Part A is merged and the run in task 4 works on the development database. Part B is planned once the owner has decided.
+Part A is merged and the run in task 4 works on the development database. Part B is planned and built in `the-market-org/factory`.
