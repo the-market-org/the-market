@@ -21,9 +21,16 @@ export interface CartPageSteps {
   renderOrder: (input: { storeName: string; orderNumber: number; totalText: string }) => string;
   statusFor: (message: string) => number;
   describe: (error: unknown) => string;
+  recordEvent: (event: { tenantId: string; visitorKey: string; eventName: string; pageKey: string }) => void;
 }
 
 const CART_COOKIE = "cart_id";
+const VISITOR_COOKIE = "visitor_id";
+
+/** The shopper's anonymous visitor key, or "" when they have none. */
+function readVisitor(request: RouteRequest): string {
+  return readCookie({ cookieHeader: String(request.headerValues.cookie), cookieName: VISITOR_COOKIE });
+}
 const COOKIE_ATTRIBUTES = "Path=/; HttpOnly; SameSite=Lax"; // adding past 99 in total is refused by the carts service
 
 /** One cookie's value from a Cookie header, or "". */
@@ -86,6 +93,7 @@ export function buildCartPageRoutes(steps: CartPageSteps): Route[] {
       const cart = (await findOpenCart({ request, steps })) ?? (await steps.createCart({ tenantId: request.tenantId }));
       const quantity = quantityIn({ lines: cart.lines, productId }) + Number(form.get("quantity"));
       await steps.setLine({ tenantId: request.tenantId, cartId: cart.cartId, productId, quantity });
+      steps.recordEvent({ tenantId: request.tenantId, visitorKey: readVisitor(request), eventName: "add_to_cart", pageKey: "product" });
       return replyHtml({ status: 303, html: "", headers: { location: "/cart", "set-cookie": `${CART_COOKIE}=${cart.cartId}; ${COOKIE_ATTRIBUTES}; Max-Age=2592000` } });
     }),
     page("GET", "/cart", async (request) =>
@@ -94,6 +102,7 @@ export function buildCartPageRoutes(steps: CartPageSteps): Route[] {
     page("POST", "/cart/checkout", async (request) => {
       const cart = await findOpenCart({ request, steps });
       const outcome = await steps.checkOut({ tenantId: request.tenantId, cartId: String(cart?.cartId) }).catch((error: unknown) => ({ failure: steps.describe(error) }));
+      steps.recordEvent({ tenantId: request.tenantId, visitorKey: "failure" in outcome ? "" : readVisitor(request), eventName: "checkout_paid", pageKey: "cart" });
       return "failure" in outcome
         ? replyHtml({ status: 422, html: await renderCartPage({ tenantId: request.tenantId, cart, errorMessage: outcome.failure, steps }) })
         : replyHtml({ status: 303, html: "", headers: { location: `/orders/${outcome.orderId}`, "set-cookie": `${CART_COOKIE}=; ${COOKIE_ATTRIBUTES}; Max-Age=0` } });
