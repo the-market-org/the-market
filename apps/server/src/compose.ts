@@ -16,6 +16,8 @@ import { guardMerchantRoutes, isMerchantOf, matchesMerchant, matchesMerchantToke
 import { composeAgentCardRoute } from "./a2a/compose-a2a.ts";
 import { composeAppRoutes } from "./apps/compose-apps.ts";
 import { composeExperimentRoutes } from "./experiments/compose-experiments.ts";
+import { composePlatformRoutes, guardPlatformRoutes, matchesPlatformToken } from "./platform-access.ts";
+import { composePlatformConnectionRoutes } from "./platform-connections.ts";
 import type { AppAccess } from "./apps/compose-apps.ts";
 import { composeShopperRoutes } from "./checkout/compose-checkout.ts";
 import { composeConnectionRoutes } from "./connections/compose-connections.ts";
@@ -42,6 +44,8 @@ export async function composeServer(input: {
   paymentProvider?: PaymentProvider;
   /** Fetching, DNS and the app authoriser for installing apps; installs are refused when absent. */
   appAccess?: AppAccess;
+  /** The token a publisher uses on /api/platform/ routes; without it those routes are not mounted. */
+  platformToken?: string;
 }): Promise<Hono> {
   const resolveTenantService = resolveService({
     registry: input.registry,
@@ -101,6 +105,7 @@ export async function composeServer(input: {
       composeAgentCardRoute({ registry: input.registry }),
       ...composeShopperRoutes({ registry: input.registry, paymentProvider: input.paymentProvider }),
       ...guardMerchantRoutes({ routes: merchantRoutes, enabled: merchantEnabled, matches: matchesRequest }),
+      ...guardPlatformRoutes({ routes: [...composePlatformRoutes({ registry: input.registry }), ...composePlatformConnectionRoutes({ registry: input.registry, allowLocalHttp: input.allowLocalHttp === true })], platformToken: input.platformToken ?? "", matches: matchesPlatformToken }),
       ...composeAgentRoutes({
         enabled: input.identityEnabled,
         registry: input.registry,

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { buildTenancyServices, ensureTenant, normaliseHost, resolveTenant } from "./tenancy-services.ts";
+import { buildTenancyServices, createStore, ensureTenant, normaliseHost, resolveTenant } from "./tenancy-services.ts";
 import type { TenancyDatabase, TenantRecord } from "./tenancy-services.ts";
 
 interface TenancyServices {
@@ -8,12 +8,14 @@ interface TenancyServices {
   createTenant: (input: { slug: string; name: string; primaryHost: string }) => Promise<TenantRecord>;
   ensureTenant: (input: { slug: string; name: string; primaryHost: string }) => Promise<TenantRecord>;
   findTenant: (input: { tenantId: string }) => Promise<TenantRecord | undefined>;
+  createStore: (input: { slug: string; name: string; primaryHost: string }) => Promise<TenantRecord>;
 }
 
 function buildFakeDatabase(stored: TenantRecord[]): TenancyDatabase {
   return {
     findTenantByHost: async (input) => stored.find((tenant) => tenant.primaryHost === input.host),
     findTenantById: async (input) => stored.find((tenant) => tenant.tenantId === input.tenantId),
+    findTenantBySlug: async (input) => stored.find((tenant) => tenant.slug === input.slug),
     insertTenant: async (input) => {
       const tenant = { ...input, tenantId: `tenant_${stored.length + 1}`, status: "active" };
       stored.push(tenant);
@@ -28,6 +30,7 @@ function buildServices(stored: TenantRecord[]): TenancyServices {
     resolve: resolveTenant,
     ensure: ensureTenant,
     normalise: normaliseHost,
+    create: createStore,
   }) as unknown as TenancyServices;
 }
 
@@ -81,4 +84,13 @@ test("findTenant returns a tenant by its id, and nothing for an unknown id", asy
 
   assert.equal((await services.findTenant({ tenantId: created.tenantId }))?.name, "Shop A");
   assert.equal(await services.findTenant({ tenantId: "tenant_unknown" }), undefined);
+});
+
+test("a publisher creates a store with a free host and slug, and is refused a taken one", async () => {
+  const services = buildServices([]);
+  const created = await services.createStore({ slug: "shop-d", name: "Shop D", primaryHost: "Shop-D.Example:443" });
+  assert.deepEqual([created.slug, created.primaryHost, created.status], ["shop-d", "shop-d.example", "active"]);
+  await assert.rejects(services.createStore({ slug: "other", name: "Other", primaryHost: "shop-d.example" }), { message: "Host is already used" });
+  await assert.rejects(services.createStore({ slug: "shop-d", name: "Other", primaryHost: "other.example" }), { message: "Slug is already used" });
+  await assert.rejects(services.createStore({ slug: "Shop D", name: "Other", primaryHost: "x.example" }), { message: "Invalid input: slug must be 3 to 40 lower-case letters, digits or hyphens" });
 });

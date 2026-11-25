@@ -22,6 +22,7 @@ export function buildTenancyDatabase(input: {
         : [];
       return tenants[0];
     },
+    findTenantBySlug: async (query) => (await client.tenant.findUnique({ where: { slug: query.slug } })) ?? undefined,
     insertTenant: (tenant) =>
       client.tenant.create({
         data: { slug: tenant.slug, name: tenant.name, primaryHost: tenant.primaryHost },
