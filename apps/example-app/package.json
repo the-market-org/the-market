@@ -1,0 +1,9 @@
+{
+  "name": "@the-market/example-app",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@the-market/a2a-gateway": "workspace:*"
+  }
+}
