@@ -6,6 +6,7 @@ const ERROR_STATUSES: ReadonlyArray<readonly [string, number]> = Object.freeze([
   ["Change set not found", 404],
   ["Cart not found", 404],
   ["Order not found", 404],
+  ["App not found", 404],
   ["invalid_json", 400],
   ["Unknown capability:", 400],
   ["Invalid input:", 400],
@@ -13,6 +14,7 @@ const ERROR_STATUSES: ReadonlyArray<readonly [string, number]> = Object.freeze([
   ["Change set is not a draft", 409],
   ["Change set cannot move from", 409],
   ["Cart is already checked out", 409],
+  ["App is not waiting for a decision", 409],
 ]);
 
 export function replyJson(input: { status: number; body: unknown }): HttpReply {
