@@ -6,6 +6,7 @@ import { buildExperimentsDatabase } from "./prisma-experiments-database.ts";
 
 export type { ArmCounts, ExperimentRecord, ExperimentsDatabase } from "./experiments-types.ts";
 export { assignArm } from "./experiment-statistics.ts";
+export { buildStartExperimentCapability } from "./experiments-capabilities.ts";
 export { EVENT_NAMES, METRIC_NAMES } from "./experiments-services.ts";
 export { buildExperimentsDatabase } from "./prisma-experiments-database.ts";
 
