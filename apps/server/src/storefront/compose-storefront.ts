@@ -1,5 +1,7 @@
 /** Composition of the storefront routes: the only place their concrete functions are wired. */
+import { createHash } from "node:crypto";
 import { buildSkillMessage, composeA2aClient } from "@the-market/a2a-gateway";
+import { assignArm } from "@the-market/module-experiments";
 import { resolveService } from "@the-market/core";
 import type { ModuleRegistry, SendRequest } from "@the-market/core";
 import { cleanFragment, DEFAULT_PAGES, DEFAULT_SECTIONS, escapeHtml, formatPrice, limitDuration, readSettingText, renderPage, scopeHtmxRequests, stripActiveContent, wrapDocument, wrapFragment } from "@the-market/theme-engine";
@@ -13,8 +15,24 @@ import { recordKnownVisitor, recordQuietly, serveVisitorPage, VISITOR_COOKIE } f
 import type { StoreEvent } from "./visitor-telemetry.ts";
 import type { RouteRequest } from "../hono-adapter.ts";
 import type { HttpReply } from "@the-market/core";
+import { findPreviewSections } from "./preview-handler.ts";
+import { chooseVariantSections } from "./variant-pages.ts";
+import type { VariantSteps } from "./variant-pages.ts";
 
 const SLOT_TIME_LIMIT_MS = 300;
+
+/** Experiment steps over the loaded modules; a missing module rejects, and the visitor sees the live page. */
+function buildVariantSteps(registry: ModuleRegistry): VariantSteps {
+  const call = (moduleName: string, serviceName: string) => async (request: unknown) => (resolveService({ registry, moduleName, serviceName }) as (request: unknown) => Promise<never>)(request);
+  const findChangeSet = call("changes", "findChangeSet") as (request: unknown) => Promise<{ items: Awaited<ReturnType<VariantSteps["findItems"]>> } | undefined>;
+  return {
+    findRunning: call("experiments", "findRunningExperiment"),
+    assign: (request) => assignArm({ ...request, digest: (text) => createHash("sha256").update(text).digest() }),
+    recordExposure: call("experiments", "recordExposure"),
+    findItems: async (request) => (await findChangeSet(request))?.items ?? [],
+    findSections: findPreviewSections,
+  };
+}
 
 /** Events go to the experiments module when it is loaded; without it, or when it fails, nothing is recorded. */
 export function buildEventRecorder(registry: ModuleRegistry): (event: StoreEvent) => void {
@@ -60,16 +78,27 @@ export function buildStorefrontSteps(input: { registry: ModuleRegistry; sendRequ
 export function composeStorefrontRoutes(input: { registry: ModuleRegistry; sendRequest?: SendRequest }): Route[] {
   const steps = buildStorefrontSteps(input);
   const record = buildEventRecorder(input.registry);
-  const visit = (request: RouteRequest, pageKey: string, run: () => Promise<HttpReply>) =>
-    serveVisitorPage({ tenantId: request.tenantId, pageKey, cookieValue: readCookie({ cookieHeader: String(request.headerValues.cookie ?? ""), cookieName: VISITOR_COOKIE }), createKey: () => crypto.randomUUID(), run, record });
+  const variantSteps = buildVariantSteps(input.registry);
+  const visit = (request: RouteRequest, pageKey: string, run: (pageSteps: StorefrontSteps) => Promise<HttpReply>) =>
+    serveVisitorPage({
+      tenantId: request.tenantId,
+      pageKey,
+      cookieValue: readCookie({ cookieHeader: String(request.headerValues.cookie ?? ""), cookieName: VISITOR_COOKIE }),
+      createKey: () => crypto.randomUUID(),
+      run: async (visitorKey) => {
+        const sections = await chooseVariantSections({ tenantId: request.tenantId, pageKey, visitorKey, steps: variantSteps });
+        return run(sections === undefined ? steps : { ...steps, findPage: async () => sections });
+      },
+      record,
+    });
   return [
-    { method: "GET", path: "/", tenantScoped: true, handleRequest: (request) => visit(request, "home", () => handleHomePage({ tenantId: request.tenantId, steps, renderPage: renderStorePage })) },
+    { method: "GET", path: "/", tenantScoped: true, handleRequest: (request) => visit(request, "home", (pageSteps) => handleHomePage({ tenantId: request.tenantId, steps: pageSteps, renderPage: renderStorePage })) },
     {
       method: "GET",
       path: "/products/:handle",
       tenantScoped: true,
       handleRequest: (request) =>
-        visit(request, "product", () => handleProductPage({ tenantId: request.tenantId, handle: String(request.pathParams.handle), steps, renderPage: renderStorePage })),
+        visit(request, "product", (pageSteps) => handleProductPage({ tenantId: request.tenantId, handle: String(request.pathParams.handle), steps: pageSteps, renderPage: renderStorePage })),
     },
   ];
 }
