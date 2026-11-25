@@ -11,6 +11,7 @@
     "typecheck": "pnpm generate && tsc --noEmit -p tsconfig.json",
     "test": "pnpm generate && node --test \"packages/**/*.test.ts\" \"modules/**/*.test.ts\" \"apps/**/*.test.ts\" \"scripts/**/*.test.ts\"",
     "seed": "node --env-file-if-exists=.env scripts/seed.ts",
+    "create-store": "node scripts/create-store.ts",
     "example-agent": "node apps/example-agent/src/main.ts",
     "example-app": "node apps/example-app/src/main.ts",
     "simulate-visitors": "node scripts/simulate-visitors.ts"
