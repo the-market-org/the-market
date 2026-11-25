@@ -3,6 +3,7 @@
  * and return an HttpReply, so the HTTP framework can be swapped here alone.
  */
 import type { HttpReply } from "@the-market/core";
+import { addSecurityHeaders } from "./security-headers.ts";
 import type { Context, Hono } from "hono";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 
@@ -51,12 +52,13 @@ export async function answerWithRoute(input: {
   readRequestHost: (context: Context) => string;
   readRequestAuthorization: (context: Context) => string;
   readRequestHeaders: (context: Context) => Record<string, string>;
+  addHeaders: (headers: Readonly<Record<string, string>>) => Record<string, string>;
 }): Promise<Response> {
   const tenantId = input.route.tenantScoped
     ? await input.resolveTenant(input.readRequestHost(input.context))
     : "";
   if (tenantId === undefined) {
-    return input.context.body('{"error":"unknown_store"}', 404, { "content-type": "application/json" });
+    return input.context.body('{"error":"unknown_store"}', 404, input.addHeaders({ "content-type": "application/json" }));
   }
   const reply = await input.route.handleRequest({
     tenantId,
@@ -66,7 +68,7 @@ export async function answerWithRoute(input: {
     authorization: input.readRequestAuthorization(input.context),
     headerValues: input.readRequestHeaders(input.context),
   });
-  return input.context.body(reply.bodyText, reply.status as ContentfulStatusCode, reply.headers);
+  return input.context.body(reply.bodyText, reply.status as ContentfulStatusCode, input.addHeaders(reply.headers));
 }
 
 /** Registers every route on the Hono app. */
@@ -85,6 +87,7 @@ export function mountRoutes(input: {
         readRequestHost: readHost,
         readRequestAuthorization: readAuthorization,
         readRequestHeaders: readHeaders,
+        addHeaders: addSecurityHeaders,
       }),
     );
   }
