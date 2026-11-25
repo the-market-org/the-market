@@ -13,7 +13,7 @@
 
 **Artifacts:**
 - [D] Owner decision: the closed publisher lives in `the-market-org/factory`, and nothing closed is committed to `the-market` — invalidates when the owner changes it [critical] [2026-11-25]
-- [D] Owner decision: the CrewAI agent service (work package 13) also lives in `factory` for now, in its own folder `agent-service/`, apart from `publisher/`. This is recorded on #132 and in `~/.claude/CLAUDE.md` — invalidates when the owner moves it [critical] [2026-11-25]
+- [D] Owner decision, which replaced `factory/agent-service/` the same day: the CrewAI agent service (work package 13) lives in its own private repository, `the-market-org/commerce-agent`, checked out at `/Users/rubencamposdeteba/the-market/commerce-agent` (empty apart from a README). This is recorded on #132, in its description, and in `~/.claude/CLAUDE.md` — invalidates when the owner moves it [critical] [2026-11-25]
 
 **Next steps:**
 - Work package 12, part A, task 1: platform access.
