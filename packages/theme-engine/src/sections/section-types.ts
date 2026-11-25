@@ -17,6 +17,8 @@ export interface PageData {
   storeName: string;
   products: ProductCard[];
   product: ProductCard | undefined;
+  /** App fragments per slot name, already sanitised and wrapped by the server. */
+  slots: Readonly<Record<string, string>>;
 }
 
 /** A section shipped by the theme: code, with a settings schema the agent can fill. */

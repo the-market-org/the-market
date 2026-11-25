@@ -18,6 +18,7 @@ export interface StorefrontSteps {
   defaultPages: Readonly<Record<string, PageSection[]>>;
   toCard: (product: StoreProduct) => ProductCard;
   render: (input: { sections: PageSection[]; pageData: PageData }) => string;
+  loadSlots: (input: { tenantId: string; slotNames: string[]; pageValues: Record<string, string> }) => Promise<Record<string, string>>;
 }
 
 export function replyHtml(input: { status: number; html: string }): HttpReply {
@@ -37,12 +38,15 @@ export async function renderStorePage(input: {
     steps.findStoreName({ tenantId: input.tenantId }),
     steps.findPage({ tenantId: input.tenantId, pageKey: input.pageKey }),
   ]);
+  const sections = saved ?? steps.defaultPages[input.pageKey] ?? [];
+  const slotNames = sections.filter((section) => section.sectionType === "app-slot").map((section) => String(section.settings.slotName));
+  const pageValues = { productHandle: String(input.product?.handle ?? ""), productTitle: String(input.product?.title ?? "") };
   const pageData: PageData = {
     storeName,
     products: input.products.map(steps.toCard),
     product: input.product === undefined ? undefined : steps.toCard(input.product),
+    slots: await steps.loadSlots({ tenantId: input.tenantId, slotNames, pageValues }),
   };
-  const sections = saved ?? steps.defaultPages[input.pageKey] ?? [];
   return replyHtml({ status: 200, html: steps.render({ sections, pageData }) });
 }
 
