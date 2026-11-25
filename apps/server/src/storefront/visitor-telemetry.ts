@@ -15,8 +15,8 @@ export function readVisitorKey(input: { cookieValue: string; createKey: () => st
   return { visitorKey: known ? input.cookieValue : input.createKey(), isNew: !known };
 }
 
-export function buildVisitorCookie(visitorKey: string): string {
-  return `${VISITOR_COOKIE}=${visitorKey}; Path=/; HttpOnly; SameSite=Lax; Max-Age=31536000`;
+export function buildVisitorCookie(input: { visitorKey: string; attributes: string }): string {
+  return `${VISITOR_COOKIE}=${input.visitorKey}; ${input.attributes}; Max-Age=31536000`;
 }
 
 /** Starts the write and returns at once; a failed write is dropped. */
@@ -34,12 +34,13 @@ export async function serveVisitorPage(input: {
   createKey: () => string;
   run: (visitorKey: string) => Promise<HttpReply>;
   record: (event: StoreEvent) => void;
+  cookieAttributes: string;
 }): Promise<HttpReply> {
   const visitor = readVisitorKey({ cookieValue: input.cookieValue, createKey: input.createKey });
   const reply = await input.run(visitor.visitorKey);
   const found = reply.status === 200;
   input.record({ tenantId: input.tenantId, visitorKey: found ? visitor.visitorKey : "", eventName: "page_view", pageKey: input.pageKey });
-  return visitor.isNew ? { ...reply, headers: { ...reply.headers, "set-cookie": buildVisitorCookie(visitor.visitorKey) } } : reply;
+  return visitor.isNew ? { ...reply, headers: { ...reply.headers, "set-cookie": buildVisitorCookie({ visitorKey: visitor.visitorKey, attributes: input.cookieAttributes }) } } : reply;
 }
 
 /** Passes on events of known visitors only: a request without a visitor key records nothing. */
