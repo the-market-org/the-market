@@ -105,7 +105,7 @@ On the development database:
 
 The service signs merchants up and creates their stores through part A. It then grants sign-in with Supabase Auth, setting `app_metadata.tenant_id` and `app_metadata.role` on the user, and registers the store with the agent service (work package 13).
 
-**Where it lives:** owner decision, 2026-11-25: the publisher is built in the private repository `the-market-org/factory`, never in this public one. It talks to the tenant app only through part A's platform routes. Its plan is written in `factory` once part A is merged; until then, `scripts/create-store.ts` stands in for it.
+**Where it lives:** owner decision, 2026-11-25: the publisher is built in the private repository `the-market-org/factory`, in its own folder `publisher/`, never in this public one. The CrewAI agent service (work package 13) also lives in `factory` for now, in its own folder `agent-service/`. It talks to the tenant app only through part A's platform routes. Its plan is written in `factory` once part A is merged; until then, `scripts/create-store.ts` stands in for it.
 
 ## Done when
 
