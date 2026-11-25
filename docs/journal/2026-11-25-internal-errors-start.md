@@ -10,7 +10,7 @@
 
 **Context table checked:**
 - This entry has no critical or volatile artifact, so `_context.md` is unchanged here.
-- The two critical repository decisions (the publisher in `factory`, the agent service in `commerce-agent`) are in `_context.md` on #132, which adds them to `main` when it merges.
+- The two critical repository decisions (the publisher in `factory`, the agent service in `commerce-agent`) were missing from `main`'s `_context.md`, so this branch adds them too. #132 adds the same rows, and whichever merges second keeps one copy of each.
 - The only scheduled job is the loop's one-shot wakeup (`ff10d630`, 22:18), which continues this work.
 
 **Next steps:**
