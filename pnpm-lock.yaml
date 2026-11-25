@@ -217,6 +217,9 @@ importers:
       '@the-market/module-connections':
         specifier: workspace:*
         version: link:../../modules/connections
+      '@the-market/module-experiments':
+        specifier: workspace:*
+        version: link:../../modules/experiments
       '@the-market/module-orders':
         specifier: workspace:*
         version: link:../../modules/orders

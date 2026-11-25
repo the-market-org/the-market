@@ -18,6 +18,7 @@ import { cartsModule } from "@the-market/module-carts";
 import { catalogModule } from "@the-market/module-catalog";
 import { changesModule } from "@the-market/module-changes";
 import { connectionsModule } from "@the-market/module-connections";
+import { experimentsModule } from "@the-market/module-experiments";
 import { ordersModule } from "@the-market/module-orders";
 import { pagesModule } from "@the-market/module-pages";
 import { tenancyModule } from "@the-market/module-tenancy";
@@ -25,7 +26,7 @@ import { tenancyModule } from "@the-market/module-tenancy";
 export async function composeModules(input: {
   databaseUrl: string;
 }): Promise<{ registry: ModuleRegistry; capabilities: CapabilityRegistry; subscribeEvent: EventBus["subscribeEvent"] }> {
-  const definitions = [tenancyModule, catalogModule, changesModule, pagesModule, connectionsModule, cartsModule, ordersModule, appsModule];
+  const definitions = [tenancyModule, catalogModule, changesModule, pagesModule, connectionsModule, cartsModule, ordersModule, appsModule, experimentsModule];
   const eventBus = buildEventBus();
   const registry = await loadModules({
     definitions,

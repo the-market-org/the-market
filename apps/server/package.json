@@ -12,6 +12,7 @@
     "@the-market/module-catalog": "workspace:*",
     "@the-market/module-changes": "workspace:*",
     "@the-market/module-connections": "workspace:*",
+    "@the-market/module-experiments": "workspace:*",
     "@the-market/module-orders": "workspace:*",
     "@the-market/module-pages": "workspace:*",
     "@the-market/module-tenancy": "workspace:*",
