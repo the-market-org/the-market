@@ -12,5 +12,10 @@
 - [E] Plan pull requests that each edit one row of the master plan's table conflict with each other, because the rows are next to each other. Fix: give every plan pull request the same final rows, or link a plan from its own file only — invalidates never [medium] [2026-11-25]
 - [E] Running an edit script on a file still in conflict, then `git commit`, finishes the merge with the markers in it. Fix: after `git merge`, list `git diff --name-only --diff-filter=U` and resolve those files first. Never commit while the list is not empty — invalidates never [high] [2026-11-25]
 
+**Closing state:**
+- This entry is pushed on `feat/parser-sanitizer`. It reaches `main` with the task 4 pull request, which is not open yet.
+- `_context.md` is unchanged: the two artifacts are high and medium, neither critical nor volatile.
+- The only scheduled job is the loop's one-shot wakeup (`57ee2641`, 22:38), which continues with task 4.
+
 **Next steps:**
 - Work package 15 task 4 (the parser-based sanitizer) on this branch.
