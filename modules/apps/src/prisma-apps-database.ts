@@ -17,7 +17,7 @@ export function buildAppsDatabase(input: { databaseUrl: string }): AppsDatabase 
   const bindingKey = (keys: { tenantId: string; appId: string; slotName: string }) => ({ tenantId_slotName_appId: { tenantId: keys.tenantId, slotName: keys.slotName, appId: keys.appId } });
   return {
     insertApp: async (app) => describeApp(await client.app.create({ data: app })),
-    findApp: async (keys) => (UUID_PATTERN.test(keys.appId) ? (await client.app.findMany({ where: keys })).map(describeApp)[0] : undefined),
+    findApp: async (keys) => (UUID_PATTERN.test(keys.appId) ? (await client.app.findMany({ where: { tenantId: keys.tenantId, appId: keys.appId } })).map(describeApp)[0] : undefined),
     findAppByUrl: async (query) => (await client.app.findMany({ where: query })).map(describeApp)[0],
     listApps: async (query) => (await client.app.findMany({ where: query, orderBy: { installedAt: "asc" } })).map(describeApp),
     updateAppStatus: async (move) => {

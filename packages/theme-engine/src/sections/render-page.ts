@@ -6,9 +6,13 @@ import { wrapDocument } from "./shop-pages.ts";
 export const DEFAULT_PAGES: Readonly<Record<string, PageSection[]>> = Object.freeze({
   home: [
     { sectionType: "hero", settings: { heading: "Welcome", subheading: "Have a look around." } },
+    { sectionType: "app-slot", settings: { slotName: "home.below-hero" } },
     { sectionType: "product-grid", settings: { heading: "Products" } },
   ],
-  product: [{ sectionType: "product-detail", settings: {} }],
+  product: [
+    { sectionType: "product-detail", settings: {} },
+    { sectionType: "app-slot", settings: { slotName: "product.below-detail" } },
+  ],
 });
 
 /** A price in minor units as the shopper reads it, for example "£18.00". */

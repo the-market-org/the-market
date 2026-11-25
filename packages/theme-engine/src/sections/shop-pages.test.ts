@@ -16,7 +16,7 @@ test("the product detail section has an add-to-cart form for its product", () =>
   const html = String(
     definition?.renderSection({
       settings: {},
-      pageData: { storeName: "S", products: [], product: { productId: "p-1", handle: "rope-lead", title: "Rope lead", priceText: "£18.00" } },
+      pageData: { storeName: "S", products: [], product: { productId: "p-1", handle: "rope-lead", title: "Rope lead", priceText: "£18.00" }, slots: {} },
       escape: escapeHtml,
       readText: readSettingText,
     }),

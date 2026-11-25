@@ -8,6 +8,16 @@ const textSchema = (fieldNames: string[]) => ({
 
 export const DEFAULT_SECTIONS: readonly SectionDefinition[] = Object.freeze([
   {
+    sectionType: "app-slot",
+    pageKeys: ["home", "product"],
+    settingsSchema: textSchema(["slotName"]),
+    // The fragment is HTML the server has already sanitised; it is not escaped again.
+    renderSection: ({ settings, pageData, readText }) => {
+      const fragment = new Map(Object.entries(pageData.slots)).get(readText(settings.slotName)) ?? "";
+      return fragment === "" ? "" : `<section class="app-slot">${fragment}</section>`;
+    },
+  },
+  {
     sectionType: "hero",
     pageKeys: ["home"],
     settingsSchema: textSchema(["heading", "subheading"]),

@@ -9,3 +9,5 @@ export type { PageData, PageSection, ProductCard, SectionDefinition } from "./se
 export { DEFAULT_PAGES, formatPrice, renderPage } from "./sections/render-page.ts";
 export { renderCartPage, renderOrderPage, wrapDocument } from "./sections/shop-pages.ts";
 export type { CartPageLine } from "./sections/shop-pages.ts";
+export { cleanFragment, scopeHtmxRequests, stripActiveContent } from "./fragment-sanitizer.ts";
+export { limitDuration, wrapFragment } from "./partial-handler.ts";

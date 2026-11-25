@@ -1,5 +1,6 @@
 /** Entry point: reads the environment, builds the server and starts listening. */
 import { serve } from "@hono/node-server";
+import { lookup } from "node:dns/promises";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { composeModules } from "./compose-modules.ts";
 import { composeSockets } from "./compose-sockets.ts";
@@ -28,6 +29,14 @@ const app = await composeServer({
   identity: sockets.identity,
   identityEnabled: sockets.identityEnabled,
   allowLocalHttp: process.env.NODE_ENV !== "production",
+  appAccess: {
+    sendRequest: async (request) => {
+      const response = await fetch(request.url, { method: request.method, headers: request.headers, redirect: "error", signal: AbortSignal.timeout(5000), ...(request.method === "GET" ? {} : { body: request.bodyText }) });
+      return { status: response.status, headers: {}, bodyText: await response.text() };
+    },
+    lookupAddress: async (host) => (await lookup(host, { all: true }).catch(() => [])).map((entry) => entry.address),
+    authoriser: sockets.authoriser,
+  },
 });
 
 serve({ fetch: app.fetch, port }, (address) => {
