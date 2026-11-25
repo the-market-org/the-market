@@ -43,5 +43,6 @@ jobs:
       - run: pnpm db carts migrate deploy
       - run: pnpm db orders migrate deploy
       - run: pnpm db apps migrate deploy
+      - run: pnpm db experiments migrate deploy
       - run: pnpm typecheck
       - run: pnpm test
