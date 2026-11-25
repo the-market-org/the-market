@@ -19,3 +19,5 @@
 
 **Next steps:**
 - Work package 15 task 4 (the parser-based sanitizer) on this branch.
+
+**Stop, 2026-11-25 22:42:** No new work since the closing state above; the next action is task 4 at the loop's wakeup.
