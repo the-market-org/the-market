@@ -17,7 +17,7 @@ const databaseUrl = process.env.DATABASE_URL;
 if (databaseUrl === undefined) {
   throw new Error("DATABASE_URL is not set. Add it to .env in the repository root.");
 }
-const { registry, capabilities, subscribeEvent } = await composeModules({ databaseUrl });
+const { registry, capabilities, subscribeEvent } = await composeModules({ databaseUrl, environment: process.env });
 composeEventDelivery({ registry, subscribeEvent, post: postWithFetch, readNow: Date.now, writeLine: (line) => console.log(line) });
 const merchantToken = process.env.MERCHANT_TOKEN ?? "";
 const allowLocalHttp = process.env.NODE_ENV !== "production";

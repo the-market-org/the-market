@@ -27,6 +27,7 @@ type StartSteps = Parameters<typeof buildStartExperimentCapability>[0];
 
 export async function composeModules(input: {
   databaseUrl: string;
+  environment?: Readonly<Record<string, string | undefined>>;
 }): Promise<{ registry: ModuleRegistry; capabilities: CapabilityRegistry; subscribeEvent: EventBus["subscribeEvent"] }> {
   const definitions = [tenancyModule, catalogModule, changesModule, pagesModule, connectionsModule, cartsModule, ordersModule, appsModule, experimentsModule];
   const eventBus = buildEventBus();
@@ -36,6 +37,7 @@ export async function composeModules(input: {
       ...moduleInfo,
       databaseUrl: buildModuleDatabaseUrl({ databaseUrl: input.databaseUrl, schemaName: moduleInfo.schemaName }),
       publishEvent: eventBus.publishEvent,
+      readSetting: (name: string) => input.environment?.[name] ?? "",
       subscribeEvent: eventBus.subscribeEvent,
     }),
     orderNames: orderModuleNames,

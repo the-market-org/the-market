@@ -5,6 +5,18 @@
 import type { ConnectionsDatabase } from "./connections-types.ts";
 import { PrismaClient } from "./generated/client/index.js";
 
+/** The same port, with signing secrets sealed on the way in and read back on the way out. */
+export function buildSealedDatabase<Database extends ConnectionsDatabase>(input: { database: Database; seal: (plain: string) => string; read: (stored: string) => string }): Database {
+  return {
+    ...input.database,
+    saveConnection: (connection) => input.database.saveConnection({ ...connection, signingSecret: input.seal(connection.signingSecret) }),
+    findConnection: async (query) => {
+      const found = await input.database.findConnection(query);
+      return found === undefined ? undefined : { ...found, signingSecret: input.read(found.signingSecret) };
+    },
+  };
+}
+
 export function buildConnectionsDatabase(input: { databaseUrl: string }): ConnectionsDatabase & { disconnect: () => Promise<void> } {
   const client = new PrismaClient({ datasourceUrl: input.databaseUrl });
   return {
