@@ -1,9 +1,11 @@
 import { defineModule } from "@the-market/core";
 import type { ModuleContext, ServiceMap } from "@the-market/core";
+import { SLOT_NAMES, buildSlotBindCapability } from "./apps-capabilities.ts";
 import { buildAppsServices, explainRefusedDecision, requireActiveApp, statusForDecision } from "./apps-services.ts";
 import { buildAppsDatabase } from "./prisma-apps-database.ts";
 
 export type { AppRecord, AppsDatabase, SlotBinding } from "./apps-types.ts";
+export { SLOT_NAMES };
 
 /**
  * Composition root of the apps module: connects the services to the
@@ -19,4 +21,5 @@ export const appsModule = defineModule({
   schemaName: "apps",
   dependsOn: [],
   register: registerApps,
+  listCapabilities: (request) => [buildSlotBindCapability(request.services as unknown as Parameters<typeof buildSlotBindCapability>[0])],
 });
