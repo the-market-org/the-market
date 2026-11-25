@@ -185,6 +185,12 @@ importers:
         specifier: workspace:*
         version: link:../../packages/core
 
+  apps/example-app:
+    dependencies:
+      '@the-market/a2a-gateway':
+        specifier: workspace:*
+        version: link:../../packages/a2a-gateway
+
   apps/server:
     dependencies:
       '@hono/node-server':
