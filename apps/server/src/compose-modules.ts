@@ -12,16 +12,18 @@ import {
   loadModules,
   orderModuleNames,
 } from "@the-market/core";
-import type { CapabilityRegistry, EventBus, ModuleRegistry } from "@the-market/core";
+import type { CapabilityRegistry, EventBus, ModuleRegistry, ServiceMap } from "@the-market/core";
 import { appsModule } from "@the-market/module-apps";
 import { cartsModule } from "@the-market/module-carts";
 import { catalogModule } from "@the-market/module-catalog";
 import { changesModule } from "@the-market/module-changes";
 import { connectionsModule } from "@the-market/module-connections";
-import { experimentsModule } from "@the-market/module-experiments";
+import { buildStartExperimentCapability, experimentsModule } from "@the-market/module-experiments";
 import { ordersModule } from "@the-market/module-orders";
 import { pagesModule } from "@the-market/module-pages";
 import { tenancyModule } from "@the-market/module-tenancy";
+
+type StartSteps = Parameters<typeof buildStartExperimentCapability>[0];
 
 export async function composeModules(input: {
   databaseUrl: string;
@@ -45,5 +47,15 @@ export async function composeModules(input: {
     listDeclared: listDeclaredCapabilities,
     addOne: addCapability,
   });
-  return { registry, capabilities, subscribeEvent: eventBus.subscribeEvent };
+  // experiments.start reads the changes module's change sets, so it is built here, where both modules are loaded.
+  const experiments = registry.experiments as ServiceMap;
+  const startCapability = buildStartExperimentCapability({
+    findChangeSet: (registry.changes as ServiceMap).findChangeSet as StartSteps["findChangeSet"],
+    findRunningExperiment: experiments.findRunningExperiment as StartSteps["findRunningExperiment"],
+    startExperiment: experiments.startExperiment as StartSteps["startExperiment"],
+    stopExperiment: experiments.stopExperiment as StartSteps["stopExperiment"],
+    readNow: Date.now,
+  });
+  const allCapabilities = addCapability({ collected: capabilities, moduleName: "experiments", capability: startCapability });
+  return { registry, capabilities: allCapabilities, subscribeEvent: eventBus.subscribeEvent };
 }
