@@ -4,6 +4,7 @@ import { buildFakeProvider } from "@the-market/payment";
 import type { PaymentProvider } from "@the-market/payment";
 import { escapeHtml, formatPrice, renderCartPage, renderOrderPage } from "@the-market/theme-engine";
 import { buildCartPageRoutes } from "../storefront/cart-pages.ts";
+import { buildEventRecorder } from "../storefront/compose-storefront.ts";
 import type { ModuleRegistry } from "@the-market/core";
 import { answerChangeSetError, answerSafely, parseJsonBody, readCheckedBody, replyJson } from "../change-sets/change-set-http.ts";
 import type { RouteHelpers } from "../change-sets/change-set-routes.ts";
@@ -61,6 +62,7 @@ export function composeShopperRoutes(input: { registry: ModuleRegistry; paymentP
     renderOrder: (page) => renderOrderPage({ ...page, escape: escapeHtml }),
     statusFor: (message) => answerChangeSetError(message).status,
     describe: describeError,
+    recordEvent: buildEventRecorder(input.registry),
   });
   return [
     ...cartPages,

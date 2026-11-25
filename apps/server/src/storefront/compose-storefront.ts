@@ -8,8 +8,19 @@ import { handleHomePage, handleProductPage, renderStorePage } from "./storefront
 import type { StorefrontSteps } from "./storefront-handlers.ts";
 import { loadSlotFragments, readFragmentText } from "./slot-fragments.ts";
 import type { SlotSteps } from "./slot-fragments.ts";
+import { readCookie } from "./cart-pages.ts";
+import { recordKnownVisitor, recordQuietly, serveVisitorPage, VISITOR_COOKIE } from "./visitor-telemetry.ts";
+import type { StoreEvent } from "./visitor-telemetry.ts";
+import type { RouteRequest } from "../hono-adapter.ts";
+import type { HttpReply } from "@the-market/core";
 
 const SLOT_TIME_LIMIT_MS = 300;
+
+/** Events go to the experiments module when it is loaded; without it, or when it fails, nothing is recorded. */
+export function buildEventRecorder(registry: ModuleRegistry): (event: StoreEvent) => void {
+  const record = (event: StoreEvent) => (resolveService({ registry, moduleName: "experiments", serviceName: "recordEvent" }) as (event: StoreEvent) => Promise<void>)(event);
+  return (event) => recordKnownVisitor({ event, record: (known) => recordQuietly({ record, event: known }) });
+}
 
 /** The slot steps over the apps module and an A2A client; with no sender, pages get no slots. */
 function buildSlotSteps(input: { registry: ModuleRegistry; sendRequest: SendRequest }): SlotSteps {
@@ -48,14 +59,17 @@ export function buildStorefrontSteps(input: { registry: ModuleRegistry; sendRequ
 
 export function composeStorefrontRoutes(input: { registry: ModuleRegistry; sendRequest?: SendRequest }): Route[] {
   const steps = buildStorefrontSteps(input);
+  const record = buildEventRecorder(input.registry);
+  const visit = (request: RouteRequest, pageKey: string, run: () => Promise<HttpReply>) =>
+    serveVisitorPage({ tenantId: request.tenantId, pageKey, cookieValue: readCookie({ cookieHeader: String(request.headerValues.cookie ?? ""), cookieName: VISITOR_COOKIE }), createKey: () => crypto.randomUUID(), run, record });
   return [
-    { method: "GET", path: "/", tenantScoped: true, handleRequest: (request) => handleHomePage({ tenantId: request.tenantId, steps, renderPage: renderStorePage }) },
+    { method: "GET", path: "/", tenantScoped: true, handleRequest: (request) => visit(request, "home", () => handleHomePage({ tenantId: request.tenantId, steps, renderPage: renderStorePage })) },
     {
       method: "GET",
       path: "/products/:handle",
       tenantScoped: true,
       handleRequest: (request) =>
-        handleProductPage({ tenantId: request.tenantId, handle: String(request.pathParams.handle), steps, renderPage: renderStorePage }),
+        visit(request, "product", () => handleProductPage({ tenantId: request.tenantId, handle: String(request.pathParams.handle), steps, renderPage: renderStorePage })),
     },
   ];
 }
