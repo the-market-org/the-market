@@ -32,11 +32,11 @@ export async function serveVisitorPage(input: {
   pageKey: string;
   cookieValue: string;
   createKey: () => string;
-  run: () => Promise<HttpReply>;
+  run: (visitorKey: string) => Promise<HttpReply>;
   record: (event: StoreEvent) => void;
 }): Promise<HttpReply> {
   const visitor = readVisitorKey({ cookieValue: input.cookieValue, createKey: input.createKey });
-  const reply = await input.run();
+  const reply = await input.run(visitor.visitorKey);
   const found = reply.status === 200;
   input.record({ tenantId: input.tenantId, visitorKey: found ? visitor.visitorKey : "", eventName: "page_view", pageKey: input.pageKey });
   return visitor.isNew ? { ...reply, headers: { ...reply.headers, "set-cookie": buildVisitorCookie(visitor.visitorKey) } } : reply;

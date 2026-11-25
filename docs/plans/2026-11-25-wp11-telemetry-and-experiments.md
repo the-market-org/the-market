@@ -136,7 +136,7 @@ The services reach the changes module only through an injected `findChangeSet`.
   - `add_to_cart` on `POST /cart/lines`;
   - `checkout_paid` after a successful checkout (read the cookie before it is cleared).
 - Event writes do not delay the reply (they are not awaited), and their errors are dropped.
-- When a running experiment covers the page, the visitor is assigned, the exposure is recorded (awaited, with a 200 ms limit; a timeout or failure renders control), and a `variant` visitor's page is rendered with `findPreviewSections` over the variant change set.
+- When a running experiment covers the page, the visitor is assigned, the exposure is recorded without waiting (the arm comes from the stable hash, so the page shows the arm that is recorded even when the write is slow; changed after the real check in task 4b), and a `variant` visitor's page is rendered with `findPreviewSections` over the variant change set.
 
 Tests with fakes:
 - The same cookie gets the same arm twice.
