@@ -56,7 +56,7 @@ test("an item whose capability is not registered is refused", async () => {
   });
 });
 
-test("describeError reads the message of anything thrown", () => {
+test("describeError keeps a domain message and hides anything else", () => {
   assert.equal(describeError(new Error("broken")), "broken");
-  assert.equal(describeError("plain"), "plain");
+  assert.match(describeError("plain"), /^Something went wrong \(reference [0-9a-f-]{36}\)$/);
 });
