@@ -16,6 +16,21 @@ import { buildStorefrontSteps } from "../storefront/compose-storefront.ts";
 import { findPreviewSections, handlePreview } from "../storefront/preview-handler.ts";
 import { renderStorePage } from "../storefront/storefront-handlers.ts";
 
+/** The apply and revert steps for one change set, over the changes module and the capabilities. */
+export function buildChangeSetSteps(input: { registry: ModuleRegistry; capabilities: CapabilityRegistry }) {
+  const changesService = (serviceName: string) => resolveService({ registry: input.registry, moduleName: "changes", serviceName });
+  const capabilities = input.capabilities;
+  return (keys: { tenantId: string; changeSetId: string }) => ({
+    ...keys,
+    findSet: changesService("findChangeSet") as ChangeSetActions["findChangeSet"],
+    moveSet: changesService("moveChangeSet") as MoveChangeSet,
+    applyItems: (request: { tenantId: string; items: Parameters<typeof applyItemsInOrder>[0]["items"] }) =>
+      applyItemsInOrder({ ...request, applyOne: (step) => applyItem({ ...step, capabilities }), describe: describeError }),
+    revertItems: (request: { tenantId: string; items: Parameters<typeof applyItemsInOrder>[0]["items"] }) =>
+      revertItemsInReverse({ ...request, revertOne: (step) => revertItem({ ...step, capabilities }), describe: describeError }),
+  });
+}
+
 export function composeChangeSetRoutes(input: { registry: ModuleRegistry; capabilities: CapabilityRegistry }): Route[] {
   const changesService = (serviceName: string) => resolveService({ registry: input.registry, moduleName: "changes", serviceName });
   const addItem = changesService("addChangeItem") as AddItem;
@@ -31,16 +46,7 @@ export function composeChangeSetRoutes(input: { registry: ModuleRegistry; capabi
     answer: (run) => answerSafely({ run, answerError: answerChangeSetError, describe: describeError }),
   };
   const moveSet = changesService("moveChangeSet") as MoveChangeSet;
-  const capabilities = input.capabilities;
-  const steps = (keys: { tenantId: string; changeSetId: string }) => ({
-    ...keys,
-    findSet: actions.findChangeSet,
-    moveSet,
-    applyItems: (request: { tenantId: string; items: Parameters<typeof applyItemsInOrder>[0]["items"] }) =>
-      applyItemsInOrder({ ...request, applyOne: (step) => applyItem({ ...step, capabilities }), describe: describeError }),
-    revertItems: (request: { tenantId: string; items: Parameters<typeof applyItemsInOrder>[0]["items"] }) =>
-      revertItemsInReverse({ ...request, revertOne: (step) => revertItem({ ...step, capabilities }), describe: describeError }),
-  });
+  const steps = buildChangeSetSteps(input);
   const decisions = {
     findChangeSet: actions.findChangeSet,
     approve: (request: { tenantId: string; changeSetId: string; approvedBy: string }) => approveChangeSet({ ...request, moveSet }),

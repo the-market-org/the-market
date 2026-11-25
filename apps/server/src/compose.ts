@@ -15,6 +15,7 @@ import { answerWithRoute, mountRoutes } from "./hono-adapter.ts";
 import { guardMerchantRoutes, isMerchantOf, matchesMerchant, matchesMerchantToken, readBearerToken } from "./merchant-token.ts";
 import { composeAgentCardRoute } from "./a2a/compose-a2a.ts";
 import { composeAppRoutes } from "./apps/compose-apps.ts";
+import { composeExperimentRoutes } from "./experiments/compose-experiments.ts";
 import type { AppAccess } from "./apps/compose-apps.ts";
 import { composeShopperRoutes } from "./checkout/compose-checkout.ts";
 import { composeConnectionRoutes } from "./connections/compose-connections.ts";
@@ -80,6 +81,7 @@ export async function composeServer(input: {
         ...composeChangeSetRoutes({ registry: input.registry, capabilities: input.capabilities }),
         ...composeConnectionRoutes({ registry: input.registry, allowLocalHttp: input.allowLocalHttp === true }),
         ...composeAppRoutes({ registry: input.registry, allowLocalHttp: input.allowLocalHttp === true, access: input.appAccess }),
+        ...composeExperimentRoutes({ registry: input.registry, capabilities: input.capabilities, readNow: Date.now }),
       ]
     : [];
   const matchesRequest = (request: { authorization: string; tenantId: string }) =>
