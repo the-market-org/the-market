@@ -304,6 +304,19 @@ importers:
         specifier: 6.19.3
         version: 6.19.3(typescript@5.9.3)
 
+  modules/experiments:
+    dependencies:
+      '@prisma/client':
+        specifier: 6.19.3
+        version: 6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3)
+      '@the-market/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+    devDependencies:
+      prisma:
+        specifier: 6.19.3
+        version: 6.19.3(typescript@5.9.3)
+
   modules/orders:
     dependencies:
       '@prisma/client':
