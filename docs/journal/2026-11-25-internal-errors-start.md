@@ -8,5 +8,10 @@
 **Artifacts:**
 - [I] Every plan from work package 10 to 15 is written. #130 to #138 here and `the-market-org/commerce-agent` #1 are waiting for merge, and building goes on in parallel where no open pull request is needed — invalidates when they merge [medium] [2026-11-25]
 
+**Context table checked:**
+- This entry has no critical or volatile artifact, so `_context.md` is unchanged here.
+- The two critical repository decisions (the publisher in `factory`, the agent service in `commerce-agent`) are in `_context.md` on #132, which adds them to `main` when it merges.
+- The only scheduled job is the loop's one-shot wakeup (`ff10d630`, 22:18), which continues this work.
+
 **Next steps:**
 - `classifyError` and the 500 reply with a reference id in `answerSafely`, with tests (plan task 1).
