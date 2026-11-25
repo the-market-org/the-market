@@ -14,6 +14,8 @@ import { handleHealth } from "./health-handler.ts";
 import { answerWithRoute, mountRoutes } from "./hono-adapter.ts";
 import { guardMerchantRoutes, isMerchantOf, matchesMerchant, matchesMerchantToken, readBearerToken } from "./merchant-token.ts";
 import { composeAgentCardRoute } from "./a2a/compose-a2a.ts";
+import { composeAppRoutes } from "./apps/compose-apps.ts";
+import type { AppAccess } from "./apps/compose-apps.ts";
 import { composeShopperRoutes } from "./checkout/compose-checkout.ts";
 import { composeConnectionRoutes } from "./connections/compose-connections.ts";
 import { composeAgentRoutes } from "./mcp/compose-mcp.ts";
@@ -37,6 +39,8 @@ export async function composeServer(input: {
   allowLocalHttp?: boolean;
   /** The payment gateway for checkout; the fake provider when absent. */
   paymentProvider?: PaymentProvider;
+  /** Fetching, DNS and the app authoriser for installing apps; installs are refused when absent. */
+  appAccess?: AppAccess;
 }): Promise<Hono> {
   const resolveTenantService = resolveService({
     registry: input.registry,
@@ -75,6 +79,7 @@ export async function composeServer(input: {
     ? [
         ...composeChangeSetRoutes({ registry: input.registry, capabilities: input.capabilities }),
         ...composeConnectionRoutes({ registry: input.registry, allowLocalHttp: input.allowLocalHttp === true }),
+        ...composeAppRoutes({ registry: input.registry, allowLocalHttp: input.allowLocalHttp === true, access: input.appAccess }),
       ]
     : [];
   const matchesRequest = (request: { authorization: string; tenantId: string }) =>
