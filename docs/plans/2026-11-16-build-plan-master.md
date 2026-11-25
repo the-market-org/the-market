@@ -145,7 +145,7 @@ export PATH="$HOME/Library/pnpm/bin:$PATH"; source ~/.nvm/nvm.sh; nvm use 22
 | 12 | Publisher skeleton | 5, 7 | Creates a tenant, grants merchant access, registers the agent connection | `2026-11-25-wp12-publisher-skeleton.md` |
 | 13 | CrewAI agent service | 8, 11 | Builder v0 and optimiser v0 on OpenRouter | In the private repository `the-market-org/commerce-agent` |
 | 14 | Merchant screen | 6, 7 | Conversation, preview and approvals | `2026-11-25-wp14-merchant-screen.md` |
-| 15 | Hardening | 10 | Parser-based sanitizer, CSP, row-level security, per-module database roles | To write |
+| 15 | Hardening | 10 | Parser-based sanitizer, CSP, row-level security, per-module database roles | `2026-11-25-wp15-hardening.md` |
 
 ```mermaid
 flowchart LR
