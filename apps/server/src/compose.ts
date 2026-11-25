@@ -104,7 +104,7 @@ export async function composeServer(input: {
       composeAgentCardRoute({ registry: input.registry }),
       ...composeShopperRoutes({ registry: input.registry, paymentProvider: input.paymentProvider }),
       ...guardMerchantRoutes({ routes: merchantRoutes, enabled: merchantEnabled, matches: matchesRequest }),
-      ...guardPlatformRoutes({ routes: composePlatformRoutes(), platformToken: input.platformToken ?? "", matches: matchesPlatformToken }),
+      ...guardPlatformRoutes({ routes: composePlatformRoutes({ registry: input.registry }), platformToken: input.platformToken ?? "", matches: matchesPlatformToken }),
       ...composeAgentRoutes({
         enabled: input.identityEnabled,
         registry: input.registry,
