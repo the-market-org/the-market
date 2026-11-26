@@ -1,0 +1,24 @@
+# Session log entry — 2026-11-26, ES256 tokens from a published key set
+
+- **What happened:** the publisher's real check found that a Supabase project publishes an ES256 signing key, while the identity socket verified HS256 only. So merchants' own sign-in tokens would have been refused. The owner said to add ES256 checking.
+- **Key changes:**
+  - `packages/sockets/src/key-set-identity.ts`:
+    - A token marked ES256 is checked against the P-256 key named by its `kid`, from the key set at `IDENTITY_KEYS_URL`. Every other token goes to the HS256 socket.
+    - The key set loads on first use. For an unknown `kid` it loads again at most once a minute, so rotated keys are found.
+    - Claims are read by the existing `readIdentity`.
+  - `compose-sockets.ts` wraps the HS256 socket when `IDENTITY_KEYS_URL` is set, and `main.ts` loads the key set with `fetch`.
+  - The README lists the new setting.
+- **Checks:**
+  - New tests use a real P-256 key pair:
+    - a published key's token gives its identity;
+    - another key, a changed tenant claim, an expired token and an unknown `kid` are refused;
+    - rotation reloads after a minute, not before;
+    - HS256 still passes, and `alg: none` is refused;
+    - only P-256 keys are read.
+  - `pnpm test` gives 314 pass and 0 fail, with the database tests skipped. The typecheck passes.
+  - Against the owner's real project key set: its one key loads, a forged token with its `kid` is refused, and the publisher's HS256 agent token still passes.
+- **Artifacts:**
+  - [D] ES256 tokens are verified against a published key set and everything else against `IDENTITY_SECRET`, so a store can trust its issuer's sign-in and the publisher's agent tokens together — invalidates if agent tokens move to the same issuer [high] [2026-11-26]
+- **Next steps:**
+  - Set `IDENTITY_KEYS_URL` in the tenant app's `.env`.
+  - When the owner has accepted the invite and signed in, check a real Supabase token on shop F.

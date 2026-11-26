@@ -80,7 +80,8 @@ The store depends on four interfaces with plain defaults, chosen from the enviro
 
 | Variable | Effect |
 |---|---|
-| `IDENTITY_SECRET` | Merchants sign in with HS256 tokens signed with it; the store comes from `app_metadata.tenant_id`. Unset: every token is refused. |
+| `IDENTITY_SECRET` | Merchants sign in with HS256 tokens signed with it; the store comes from `app_metadata.tenant_id`. Unset, with no `IDENTITY_KEYS_URL`: every token is refused. |
+| `IDENTITY_KEYS_URL` | A published key set (JWKS). ES256 tokens are checked against the key their `kid` names, for example Supabase Auth's `https://<project>.supabase.co/auth/v1/.well-known/jwks.json`. Other tokens still use `IDENTITY_SECRET`. |
 | `FILES_FOLDER` | Files are stored in that folder, one subfolder per store. Unset: kept in memory. |
 
 Mail is kept in an in-memory outbox and logged; app connections wait for the store owner's decision.

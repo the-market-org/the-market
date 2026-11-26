@@ -26,6 +26,7 @@ const sockets = composeSockets({
   readNow: Date.now,
   writeLine: (line) => console.log(line),
   files: { writeFile, readFile, rm, mkdir },
+  loadJson: async (url) => (await fetch(url)).json(),
 });
 const app = await composeServer({
   readUptime: () => process.uptime(),

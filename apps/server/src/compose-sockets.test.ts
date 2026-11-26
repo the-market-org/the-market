@@ -17,7 +17,7 @@ function signToken(secret: string): string {
 }
 
 function compose(environment: Record<string, string | undefined>) {
-  return composeSockets({ environment, readNow: () => NOW_MILLISECONDS, writeLine: () => {}, files });
+  return composeSockets({ environment, readNow: () => NOW_MILLISECONDS, writeLine: () => {}, files, loadJson: async () => ({ keys: [] }) });
 }
 
 test("with an empty environment, identity is off and refuses even a well-signed token", async () => {
@@ -29,6 +29,13 @@ test("with an empty environment, identity is off and refuses even a well-signed 
 test("IDENTITY_SECRET turns identity on", async () => {
   const sockets = compose({ IDENTITY_SECRET: "test-identity-secret" });
   assert.equal(sockets.identityEnabled, true);
+  assert.equal((await sockets.identity.verifyToken({ token: signToken("test-identity-secret") }))?.tenantId, "tenant-a");
+});
+
+test("IDENTITY_KEYS_URL turns identity on, and secret-signed tokens still pass beside it", async () => {
+  const sockets = compose({ IDENTITY_SECRET: "test-identity-secret", IDENTITY_KEYS_URL: "https://project.example/auth/v1/.well-known/jwks.json" });
+  assert.equal(sockets.identityEnabled, true);
+  assert.equal(compose({ IDENTITY_KEYS_URL: "https://project.example/auth/v1/.well-known/jwks.json" }).identityEnabled, true);
   assert.equal((await sockets.identity.verifyToken({ token: signToken("test-identity-secret") }))?.tenantId, "tenant-a");
 });
 
