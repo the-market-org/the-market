@@ -12,7 +12,7 @@
   5. Approve and Apply from the screen (303 each). The agent finished with `TASK_STATE_COMPLETED`, and the storefront showed the new home.
   6. Revert from the screen (303). The storefront no longer showed it.
   7. The events address received 5 `changes.change-set.moved` events, all with valid signatures, and the server log has no errors.
-- `pnpm test`: 304 pass.
+- `pnpm test`: 303 pass.
 
 **Artifacts:**
 - [E] The example agent's `--host` was sent as a Host header, which `fetch` replaces, so it never reached the named store. Fix: put the host in the URL — invalidates never [medium] [2026-11-26]
