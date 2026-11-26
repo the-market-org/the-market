@@ -45,6 +45,7 @@ export function buildChangesServices(input: {
     createChangeSet: (request: { tenantId: string; title: string; proposedBy: string }): Promise<ChangeSetRecord> =>
       input.database.insertChangeSet(request),
     findChangeSet: (request: { tenantId: string; changeSetId: string }) => input.database.findChangeSet(request),
+    listChangeSets: (request: { tenantId: string; limit?: number }) => input.database.listChangeSets({ tenantId: request.tenantId, limit: Math.min(Math.max(1, request.limit ?? 20), 100) }),
     addChangeItem: (request: Omit<Parameters<typeof addChangeItem>[0], "findSet" | "insertItem">) =>
       input.addOne({ ...request, findSet: input.database.findChangeSet, insertItem: input.database.insertChangeItem }),
     /** Moves the state, then tells the rest of the system: `changes.change-set.moved`. */
