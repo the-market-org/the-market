@@ -43,14 +43,23 @@ export function scopeToTenant<Client>(input: { client: Client; readTenant: typeo
 type TransactionRunner = { $transaction: (work: (transaction: { $executeRaw: ScopableClient["$executeRaw"] }) => Promise<unknown>) => Promise<unknown> };
 
 /**
- * Runs work in one interactive transaction that first sets `app.tenant_id` (local to the transaction). For
- * modules whose writes need their own transaction (a counter read then an insert), where `scopeToTenant`'s
- * per-query transaction cannot nest.
+ * Runs work in one interactive transaction that first sets each named setting (local to the transaction). Tenancy
+ * uses `app.host` and `app.slug` to find a store before any tenant is known; other modules use `app.tenant_id`.
  */
-export function runAsTenant<Transaction, Result>(input: { client: unknown; tenantId: string; work: (transaction: Transaction) => Promise<Result> }): Promise<Result> {
+export function runWithSettings<Transaction, Result>(input: { client: unknown; settings: Readonly<Record<string, string>>; work: (transaction: Transaction) => Promise<Result> }): Promise<Result> {
   const client = input.client as TransactionRunner;
   return client.$transaction(async (transaction) => {
-    await transaction.$executeRaw`SELECT set_config('app.tenant_id', ${input.tenantId}, true)`;
+    for (const [name, value] of Object.entries(input.settings)) {
+      await transaction.$executeRaw`SELECT set_config(${name}, ${value}, true)`;
+    }
     return input.work(transaction as unknown as Transaction);
   }) as Promise<Result>;
+}
+
+/**
+ * Runs work in one interactive transaction that first sets `app.tenant_id`. For modules whose writes need their
+ * own transaction (a counter read then an insert), where `scopeToTenant`'s per-query transaction cannot nest.
+ */
+export function runAsTenant<Transaction, Result>(input: { client: unknown; tenantId: string; work: (transaction: Transaction) => Promise<Result> }): Promise<Result> {
+  return runWithSettings({ client: input.client, settings: { "app.tenant_id": input.tenantId }, work: input.work });
 }

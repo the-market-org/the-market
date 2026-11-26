@@ -17,4 +17,4 @@ export { defineModule, findReadyNames, loadModules, orderModuleNames, resolveSer
 export { buildModuleDatabaseUrl } from "./module-database-url.ts";
 export { runWorkflow, undoCompletedSteps } from "./workflow-runner.ts";
 export type { WorkflowStep } from "./workflow-runner.ts";
-export { readQueryTenant, runAsTenant, scopeToTenant } from "./tenant-scope.ts";
+export { readQueryTenant, runAsTenant, runWithSettings, scopeToTenant } from "./tenant-scope.ts";
