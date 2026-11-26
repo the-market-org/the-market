@@ -20,6 +20,8 @@ export interface ModuleContext {
   databaseUrl: string;
   publishEvent: (eventName: string, payload: unknown) => Promise<void>;
   subscribeEvent: (eventName: string, handleEvent: EventHandler) => void;
+  /** A setting from the environment, or "" when it is not set. */
+  readSetting: (name: string) => string;
 }
 
 export interface ModuleDefinition {

@@ -38,7 +38,7 @@ export function readDatabaseUrl(databaseUrl: string | undefined): string {
 
 /** Composition: loads the modules against the database and runs the seed. */
 async function seedDatabase(input: { databaseUrl: string | undefined; storeHost: string }): Promise<void> {
-  const { registry } = await composeModules({ databaseUrl: readDatabaseUrl(input.databaseUrl) });
+  const { registry } = await composeModules({ databaseUrl: readDatabaseUrl(input.databaseUrl), environment: process.env });
   const listProducts = resolveService({ registry, moduleName: "catalog", serviceName: "listProducts" });
   const addProduct = resolveService({ registry, moduleName: "catalog", serviceName: "addProduct" });
   await runSeed({

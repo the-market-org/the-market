@@ -14,6 +14,7 @@ function buildTestContext(eventBus: ReturnType<typeof buildEventBus>) {
   return (input: { moduleName: string; schemaName: string }): ModuleContext => ({
     moduleName: input.moduleName,
     schemaName: input.schemaName,
+    readSetting: () => "",
     databaseUrl: "postgresql://unused",
     publishEvent: eventBus.publishEvent,
     subscribeEvent: eventBus.subscribeEvent,
