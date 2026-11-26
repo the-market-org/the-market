@@ -18,10 +18,7 @@
 - [S] The migration script is not run on the development database. Run it once the owner has put their own `SECRETS_KEY` in `.env`; secrets sealed with any other key can't be read back — activates when the owner adds `SECRETS_KEY` [high] [2026-11-26]
 - [D] `SECRETS_KEY` is required only in production, and development keeps working with plain secrets — invalidates when the owner wants it required everywhere [medium] [2026-11-26]
 
-**Closing state:**
-- #144 is open and CI passes.
-- The loop's next wakeup starts task 7.
-- `_context.md` is unchanged: the high-priority seed (run the migration only with the owner's key) is recorded here and in #144's description.
+**Closing state:** #144 is open with CI passing, and the loop goes on to task 7.
 
 **Next steps:**
 - Task 7: row-level security.
