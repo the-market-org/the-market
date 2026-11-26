@@ -16,6 +16,7 @@ import { guardMerchantRoutes, isMerchantOf, matchesMerchant, matchesMerchantToke
 import { composeAgentCardRoute } from "./a2a/compose-a2a.ts";
 import { composeAppRoutes } from "./apps/compose-apps.ts";
 import { composeExperimentRoutes } from "./experiments/compose-experiments.ts";
+import { composeAdminRoutes } from "./admin/admin-routes.ts";
 import { composePlatformRoutes, guardPlatformRoutes, matchesPlatformToken } from "./platform-access.ts";
 import { composePlatformConnectionRoutes } from "./platform-connections.ts";
 import type { AppAccess } from "./apps/compose-apps.ts";
@@ -107,6 +108,7 @@ export async function composeServer(input: {
       composeAgentCardRoute({ registry: input.registry }),
       ...composeShopperRoutes({ registry: input.registry, paymentProvider: input.paymentProvider, cookieAttributes }),
       ...guardMerchantRoutes({ routes: merchantRoutes, enabled: merchantEnabled, matches: matchesRequest }),
+      ...(merchantEnabled ? composeAdminRoutes({ registry: input.registry, matches: matchesRequest, allowLocalHttp: input.allowLocalHttp === true, readNow: Date.now }) : []),
       ...guardPlatformRoutes({ routes: [...composePlatformRoutes({ registry: input.registry }), ...composePlatformConnectionRoutes({ registry: input.registry, allowLocalHttp: input.allowLocalHttp === true })], platformToken: input.platformToken ?? "", matches: matchesPlatformToken }),
       ...composeAgentRoutes({
         enabled: input.identityEnabled,
