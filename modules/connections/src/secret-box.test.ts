@@ -14,7 +14,11 @@ test("a sealed secret opens with its key, and fails with another key or a change
   assert.notEqual(sealSecret({ plain: "signing-secret-1", key }), stored, "a new IV every time");
   assert.equal(openSecret({ stored, key }), "signing-secret-1");
   assert.throws(() => openSecret({ stored, key: randomBytes(32) }));
-  const changed = `${stored.slice(0, -2)}${stored.endsWith("A") ? "B" : "A"}A`;
+  const parts = stored.split(":");
+  const ciphertext = Buffer.from(String(parts[3]), "base64url");
+  ciphertext[0] = (ciphertext[0] ?? 0) ^ 0xff;
+  const changed = [...parts.slice(0, 3), ciphertext.toString("base64url")].join(":");
+  assert.notEqual(changed, stored);
   assert.throws(() => openSecret({ stored: changed, key }));
 });
 
