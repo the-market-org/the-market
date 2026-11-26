@@ -4,18 +4,18 @@
  */
 import { composeA2aClient, selectJsonRpcUrl } from "@the-market/a2a-gateway";
 import type { HttpRequest } from "@the-market/core";
-import { localEndpoint, readAgentArguments } from "./agent-arguments.ts";
+import { applyHostName, localEndpoint, readAgentArguments } from "./agent-arguments.ts";
 import { buildMcpClient } from "./mcp-client.ts";
 import { addPlannedCalls, requireTool, runExampleAgent, waitForDecision } from "./run-agent.ts";
 import { buildStarterPlan } from "./starter-plan.ts";
 
-const options = readAgentArguments({ argv: process.argv.slice(2), environment: process.env });
-const hostHeaders: Record<string, string> = options.hostHeader === "" ? {} : { host: options.hostHeader };
+const readOptions = readAgentArguments({ argv: process.argv.slice(2), environment: process.env });
+const options = { ...readOptions, storeUrl: applyHostName({ storeUrl: readOptions.storeUrl, hostName: readOptions.hostHeader }) };
 
 async function sendRequest(request: HttpRequest) {
   const response = await fetch(request.url, {
     method: request.method,
-    headers: { ...request.headers, ...hostHeaders },
+    headers: request.headers,
     ...(request.method === "GET" ? {} : { body: request.bodyText }),
   });
   return { status: response.status, headers: {}, bodyText: await response.text() };
