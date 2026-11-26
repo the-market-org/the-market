@@ -126,6 +126,8 @@ Tests: a database test that leaves out the tenant filter on purpose and still se
 
 ### Task 8: One database role per module
 
+**Run on 2026-11-26:** the owner's `postgres` user has `CREATEROLE`, so no new database user was needed. With the owner's approval, `scripts/create-module-roles.ts` created `market_<schema>` roles on the development database and wrote their connections to `.env.module-roles` (git-ignored, mode 600). `pnpm dev` and `pnpm seed` load that file.
+
 Each module connects as its own role, granted only its own schema. The tenant app gains a setting per module (`<MODULE>_DATABASE_URL`), and falls back to `DATABASE_URL` in development.
 
 **Needs the owner first:** a database user allowed to create roles on the Supabase project. The roles are created by a migration script the owner runs, and their passwords are written into the owner's `.env`, never into the repository.
