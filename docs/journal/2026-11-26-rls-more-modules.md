@@ -18,7 +18,7 @@
   - A purchase added 1, then 2 more, and paid "3 × Rope lead £54.00".
   - The store creation check passed: a page change set was applied, the home page changed, and 3 signed events arrived.
   - The server logs show no permission or policy errors.
-- `pnpm test`: 296 pass.- `_context.md` is unchanged: nothing this turn was critical or volatile.
+- `pnpm test`: 294 pass.- `_context.md` is unchanged: nothing this turn was critical or volatile.
 
 **Artifacts:**
 - [I] Before a module's adapter is wrapped with `scopeToTenant`, each of its queries must name `tenantId` at the top of `where` or `data`. A nested-only tenant filter would be read as no tenant, and the query would see no rows — invalidates when `readQueryTenant` reads nested filters [high] [2026-11-26]
