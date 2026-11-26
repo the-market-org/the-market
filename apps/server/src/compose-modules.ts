@@ -23,6 +23,12 @@ import { ordersModule } from "@the-market/module-orders";
 import { pagesModule } from "@the-market/module-pages";
 import { tenancyModule } from "@the-market/module-tenancy";
 
+/** A module's own connection (`<SCHEMA>_DATABASE_URL`, its own role) when set; otherwise the shared one. */
+export function selectModuleUrl(input: { schemaName: string; environment: Readonly<Record<string, string | undefined>>; fallback: string }): string {
+  const own = input.environment[`${input.schemaName.toUpperCase()}_DATABASE_URL`] ?? "";
+  return own === "" ? input.fallback : own;
+}
+
 type StartSteps = Parameters<typeof buildStartExperimentCapability>[0];
 
 export async function composeModules(input: {
@@ -35,7 +41,7 @@ export async function composeModules(input: {
     definitions,
     buildContext: (moduleInfo) => ({
       ...moduleInfo,
-      databaseUrl: buildModuleDatabaseUrl({ databaseUrl: input.databaseUrl, schemaName: moduleInfo.schemaName }),
+      databaseUrl: buildModuleDatabaseUrl({ databaseUrl: selectModuleUrl({ schemaName: moduleInfo.schemaName, environment: input.environment ?? {}, fallback: input.databaseUrl }), schemaName: moduleInfo.schemaName }),
       publishEvent: eventBus.publishEvent,
       readSetting: (name: string) => input.environment?.[name] ?? "",
       subscribeEvent: eventBus.subscribeEvent,
