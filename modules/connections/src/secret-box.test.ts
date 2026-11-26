@@ -37,6 +37,8 @@ test("the sealed database stores only sealed secrets and hands back the plain on
     saveConnection: async (connection) => void rows.set(connection.tenantId, { eventsUrl: connection.eventsUrl, eventNames: connection.eventNames, signingSecret: connection.signingSecret }),
     findConnection: async (query) => rows.get(query.tenantId),
     removeConnection: async (query) => void rows.delete(query.tenantId),
+    insertMessage: async () => ({ messageId: "", text: "", sentAt: "" }),
+    listMessages: async () => [],
   };
   const database = buildSealedDatabase({ database: inner, seal: (plain) => sealSecret({ plain, key }), read: (stored) => readStoredSecret({ stored, key, open: openSecret }) });
   await database.saveConnection({ tenantId: "tenant-a", eventsUrl: "https://agent.example/hook", eventNames: [], signingSecret: "plain-secret" });

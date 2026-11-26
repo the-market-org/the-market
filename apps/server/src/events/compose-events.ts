@@ -8,7 +8,7 @@ import type { EventHandler, ModuleRegistry } from "@the-market/core";
 import { deliverEvent, findWantedTarget, readEventTenant, signEventBody } from "./deliver-events.ts";
 import type { DeliveryTarget, PostEvent } from "./deliver-events.ts";
 
-export const DELIVERED_EVENTS: readonly string[] = Object.freeze(["catalog.product.created", "changes.change-set.moved"]);
+export const DELIVERED_EVENTS: readonly string[] = Object.freeze(["catalog.product.created", "changes.change-set.moved", "orders.order.paid", "merchant.message.sent"]);
 
 export function composeEventDelivery(input: {
   registry: ModuleRegistry;
