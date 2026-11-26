@@ -8,6 +8,8 @@
 **Context table checked:**
 - Task 6's artifacts are high (run the migration only with the owner's key) and medium (the key is required in production only). Neither is critical or volatile, so `_context.md` is unchanged.
 
+- The only scheduled job is the loop's one-shot wakeup (`dc4cf262`, 08:15, `/loop keep going`), which builds task 7.
+
 **Artifacts:**
 - [I] Row-level security needs each module's queries to run in a transaction that sets `app.tenant_id`. On the Supabase pooler, that setting must be local to the transaction (`set_config(..., true)`), or it would leak between pooled connections — invalidates when the module clients connect directly [high] [2026-11-26]
 
