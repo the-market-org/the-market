@@ -31,6 +31,18 @@ export function buildChangeSetSteps(input: { registry: ModuleRegistry; capabilit
   });
 }
 
+/** Approve, reject, apply and revert for one change set, through the same workflows as the merchant API. */
+export function buildChangeSetDecisions(input: { registry: ModuleRegistry; capabilities: CapabilityRegistry }) {
+  const moveSet = resolveService({ registry: input.registry, moduleName: "changes", serviceName: "moveChangeSet" }) as MoveChangeSet;
+  const steps = buildChangeSetSteps(input);
+  return {
+    approve: (request: { tenantId: string; changeSetId: string; approvedBy: string }) => approveChangeSet({ ...request, moveSet }),
+    reject: (keys: { tenantId: string; changeSetId: string }) => rejectChangeSet({ ...keys, moveSet }),
+    apply: (keys: { tenantId: string; changeSetId: string }) => applyChangeSet(steps(keys)),
+    revert: (keys: { tenantId: string; changeSetId: string }) => revertChangeSet(steps(keys)),
+  };
+}
+
 export function composeChangeSetRoutes(input: { registry: ModuleRegistry; capabilities: CapabilityRegistry }): Route[] {
   const changesService = (serviceName: string) => resolveService({ registry: input.registry, moduleName: "changes", serviceName });
   const addItem = changesService("addChangeItem") as AddItem;
@@ -45,15 +57,7 @@ export function composeChangeSetRoutes(input: { registry: ModuleRegistry; capabi
     reply: replyJson,
     answer: (run) => answerSafely({ run, answerError: answerChangeSetError, describe: describeError }),
   };
-  const moveSet = changesService("moveChangeSet") as MoveChangeSet;
-  const steps = buildChangeSetSteps(input);
-  const decisions = {
-    findChangeSet: actions.findChangeSet,
-    approve: (request: { tenantId: string; changeSetId: string; approvedBy: string }) => approveChangeSet({ ...request, moveSet }),
-    reject: (keys: { tenantId: string; changeSetId: string }) => rejectChangeSet({ ...keys, moveSet }),
-    apply: (keys: { tenantId: string; changeSetId: string }) => applyChangeSet(steps(keys)),
-    revert: (keys: { tenantId: string; changeSetId: string }) => revertChangeSet(steps(keys)),
-  };
+  const decisions = { findChangeSet: actions.findChangeSet, ...buildChangeSetDecisions(input) };
   const storefrontSteps = buildStorefrontSteps({ registry: input.registry });
   return [
     ...buildChangeSetRoutes({ actions, helpers, requireSet: requireChangeSet }),

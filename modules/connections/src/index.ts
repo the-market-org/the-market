@@ -1,7 +1,7 @@
 import { defineModule } from "@the-market/core";
 import { randomBytes } from "node:crypto";
 import type { ModuleContext, ServiceMap } from "@the-market/core";
-import { buildConnectionsServices, describeConnection } from "./connections-services.ts";
+import { buildConnectionsServices, checkMessageText, describeConnection } from "./connections-services.ts";
 import { buildConnectionsDatabase, buildSealedDatabase } from "./prisma-connections-database.ts";
 import { openSecret, readSecretsKey, readStoredSecret, sealSecret } from "./secret-box.ts";
 
@@ -26,6 +26,8 @@ export function registerConnections(context: ModuleContext): ServiceMap {
     database,
     generateSecret: () => randomBytes(32).toString("hex"),
     describe: describeConnection,
+    checkText: checkMessageText,
+    publishEvent: context.publishEvent,
   });
 }
 

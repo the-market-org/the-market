@@ -23,3 +23,14 @@ model AgentConnection {
 
   @@map("agent_connections")
 }
+
+/// What the merchant wrote to the store's agent. Delivered as the event merchant.message.sent.
+model MerchantMessage {
+  messageId String   @id @default(uuid()) @map("message_id") @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  text      String
+  sentAt    DateTime @default(now()) @map("sent_at") @db.Timestamptz
+
+  @@index([tenantId, sentAt])
+  @@map("merchant_messages")
+}

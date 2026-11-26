@@ -28,6 +28,12 @@ export function buildConnectionsDatabase(input: { databaseUrl: string }): Connec
       const records = await client.agentConnection.findMany({ where: { tenantId: query.tenantId } });
       return records.map((record) => ({ eventsUrl: record.eventsUrl, eventNames: record.eventNames, signingSecret: record.signingSecret }))[0];
     },
+    insertMessage: async (message) => {
+      const stored = await client.merchantMessage.create({ data: { tenantId: message.tenantId, text: message.text } });
+      return { messageId: stored.messageId, text: stored.text, sentAt: stored.sentAt.toISOString() };
+    },
+    listMessages: async (query) =>
+      (await client.merchantMessage.findMany({ where: { tenantId: query.tenantId }, orderBy: { sentAt: "desc" }, take: query.limit })).map((stored) => ({ messageId: stored.messageId, text: stored.text, sentAt: stored.sentAt.toISOString() })),
     removeConnection: async (query) => {
       await client.agentConnection.deleteMany({ where: { tenantId: query.tenantId } });
     },

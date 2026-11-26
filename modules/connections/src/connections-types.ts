@@ -11,4 +11,14 @@ export interface ConnectionsDatabase {
   saveConnection: (input: { tenantId: string } & DeliveryTarget) => Promise<void>;
   findConnection: (input: { tenantId: string }) => Promise<DeliveryTarget | undefined>;
   removeConnection: (input: { tenantId: string }) => Promise<void>;
+  insertMessage: (input: { tenantId: string; text: string }) => Promise<MerchantMessage>;
+  /** The store's messages, newest first, at most `limit`. */
+  listMessages: (input: { tenantId: string; limit: number }) => Promise<MerchantMessage[]>;
+}
+
+/** One message the merchant wrote to the store's agent. */
+export interface MerchantMessage {
+  messageId: string;
+  text: string;
+  sentAt: string;
 }

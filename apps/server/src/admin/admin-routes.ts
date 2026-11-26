@@ -4,6 +4,9 @@ import type { HttpReply, ModuleRegistry } from "@the-market/core";
 import { escapeHtml } from "@the-market/theme-engine";
 import { readCookie } from "../storefront/cart-pages.ts";
 import type { Route, RouteRequest } from "../hono-adapter.ts";
+import { composeAdminChangeSetRoutes } from "./admin-change-set.ts";
+import { composeAdminExperimentsAppsRoutes } from "./admin-experiments-apps.ts";
+import type { CapabilityRegistry } from "@the-market/core";
 import { buildSessionCookie, guardAdminRoutes, isOwnOrigin, readSessionSeconds, SESSION_COOKIE, sessionSecondsFor } from "./admin-session.ts";
 
 type Matches = (request: { authorization: string; tenantId: string }) => Promise<boolean>;
@@ -20,7 +23,7 @@ export function renderHomeMain(input: { storeName: string; changeSets: Summary[]
   const waiting = input.changeSets.filter((summary) => summary.state === "draft");
   const others = input.changeSets.filter((summary) => summary.state !== "draft").slice(0, 10);
   const list = (summaries: Summary[], empty: string) => (summaries.length === 0 ? `<p>${empty}</p>` : `<ul>${summaries.map(input.renderRow).join("")}</ul>`);
-  return `<h1>${escapeHtml(input.storeName)}</h1><h2>Waiting for approval (${waiting.length})</h2>${list(waiting, "Nothing is waiting.")}<h2>Recent</h2>${list(others, "No other change sets yet.")}`;
+  return `<h1>${escapeHtml(input.storeName)}</h1><nav><a href="/admin/experiments">Experiments</a> · <a href="/admin/apps">Apps</a></nav><h2>Waiting for approval (${waiting.length})</h2>${list(waiting, "Nothing is waiting.")}<h2>Recent</h2>${list(others, "No other change sets yet.")}`;
 }
 
 /** A whole admin page with a title, its main content, and the sign-out form. */
@@ -35,7 +38,7 @@ function replyPage(input: { status: number; html: string; headers?: Record<strin
 
 const SIGN_IN_FORM = '<h1>Sign in</h1><form method="post" action="/admin/sign-in"><label>Merchant token <input type="password" name="token" autocomplete="off" required></label><button>Sign in</button></form>';
 
-export function composeAdminRoutes(input: { registry: ModuleRegistry; matches: Matches; allowLocalHttp: boolean; readNow: () => number }): Route[] {
+export function composeAdminRoutes(input: { registry: ModuleRegistry; capabilities: CapabilityRegistry; matches: Matches; allowLocalHttp: boolean; readNow: () => number }): Route[] {
   const secure = !input.allowLocalHttp;
   const findStoreName = async (tenantId: string) => String(((await (resolveService({ registry: input.registry, moduleName: "tenancy", serviceName: "findTenant" }) as (request: { tenantId: string }) => Promise<{ name?: string } | undefined>)({ tenantId })) ?? {}).name ?? "");
   const readToken = (request: RouteRequest) => readCookie({ cookieHeader: String(request.headerValues.cookie ?? ""), cookieName: SESSION_COOKIE });
@@ -59,6 +62,8 @@ export function composeAdminRoutes(input: { registry: ModuleRegistry; matches: M
         const [storeName, changeSets] = await Promise.all([findStoreName(request.tenantId), listChangeSets({ tenantId: request.tenantId, limit: 50 })]);
         return replyPage({ status: 200, html: renderAdminPage({ title: "Store admin", mainHtml: renderHomeMain({ storeName, changeSets, renderRow: renderChangeSetRow }), signedIn: true }) });
       }),
+      ...composeAdminChangeSetRoutes({ registry: input.registry, capabilities: input.capabilities, renderPage: renderAdminPage }),
+      ...composeAdminExperimentsAppsRoutes({ registry: input.registry, capabilities: input.capabilities, readNow: input.readNow, renderPage: renderAdminPage }),
       route("POST", "/admin/sign-out", async () => replyPage({ status: 303, html: "", headers: { location: "/admin/sign-in", "set-cookie": buildSessionCookie({ token: "", maxAgeSeconds: 0, secure }) } })),
     ],
   });

@@ -30,7 +30,15 @@ test("one connection per store: saved, replaced, found only by its store, remove
     assert.notEqual(await database.findConnection({ tenantId: tenantA }), undefined);
     await database.removeConnection({ tenantId: tenantA });
     assert.equal(await database.findConnection({ tenantId: tenantA }), undefined);
+
+    const first = await database.insertMessage({ tenantId: tenantA, text: "first" });
+    await database.insertMessage({ tenantId: tenantA, text: "second" });
+    assert.deepEqual((await database.listMessages({ tenantId: tenantA, limit: 10 })).map((message) => message.text), ["second", "first"]);
+    assert.deepEqual((await database.listMessages({ tenantId: tenantA, limit: 1 })).length, 1);
+    assert.deepEqual(await database.listMessages({ tenantId: tenantB, limit: 10 }), []);
+    assert.match(first.sentAt, /^\d{4}-\d{2}-\d{2}T/);
   } finally {
+    await client.merchantMessage.deleteMany({ where: { tenantId: { in: [tenantA, tenantB] } } });
     await client.agentConnection.deleteMany({ where: { tenantId: { in: [tenantA, tenantB] } } });
     await Promise.all([client.$disconnect(), database.disconnect()]);
   }
