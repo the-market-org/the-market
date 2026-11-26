@@ -2,12 +2,13 @@
  * The only file in this module that touches Prisma. It implements the
  * PagesDatabase port and is the only place that turns a tenant id into a query filter.
  */
+import { readQueryTenant, scopeToTenant } from "@the-market/core";
 import { PrismaClient } from "./generated/client/index.js";
 import type { Prisma } from "./generated/client/index.js";
 import type { PageSection, PagesDatabase } from "./pages-types.ts";
 
 export function buildPagesDatabase(input: { databaseUrl: string }): PagesDatabase & { disconnect: () => Promise<void> } {
-  const client = new PrismaClient({ datasourceUrl: input.databaseUrl });
+  const client = scopeToTenant({ client: new PrismaClient({ datasourceUrl: input.databaseUrl }), readTenant: readQueryTenant });
   return {
     findPage: async (query) => {
       const records = await client.page.findMany({ where: { tenantId: query.tenantId, pageKey: query.pageKey } });

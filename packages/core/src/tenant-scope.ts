@@ -4,11 +4,17 @@
  * query names in `where` or `data`. A query that names none sets an empty value, and the policies then show no rows.
  */
 
-type QueryArgs = { where?: { tenantId?: unknown }; data?: { tenantId?: unknown } } | undefined;
+type QueryArgs = { where?: Record<string, unknown>; data?: { tenantId?: unknown }; create?: { tenantId?: unknown } } | undefined;
 
-/** The tenant id a query names at the top of its `where` or `data`, or "". */
+/** The tenant id inside a compound unique key such as `{ tenantId_pageKey: { tenantId, pageKey } }`, if any. */
+export function readCompoundTenant(where: Record<string, unknown>): unknown {
+  const keys = Object.values(where).filter((value): value is { tenantId?: unknown } => typeof value === "object" && value !== null);
+  return keys.find((key) => typeof key.tenantId === "string")?.tenantId;
+}
+
+/** The tenant id a query names in `where`, a compound key in `where`, `data`, or an upsert's `create`; or "". */
 export function readQueryTenant(args: QueryArgs): string {
-  const named = args?.where?.tenantId ?? args?.data?.tenantId;
+  const named = args?.where?.tenantId ?? readCompoundTenant(args?.where ?? {}) ?? args?.data?.tenantId ?? args?.create?.tenantId;
   return typeof named === "string" ? named : "";
 }
 

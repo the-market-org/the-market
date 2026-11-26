@@ -3,6 +3,7 @@
  * CartsDatabase port and is the only place that turns a tenant id into a query filter.
  */
 import type { CartRecord, CartsDatabase } from "./carts-types.ts";
+import { readQueryTenant, scopeToTenant } from "@the-market/core";
 import { PrismaClient } from "./generated/client/index.js";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -15,7 +16,7 @@ export function describeCart(stored: StoredCart): CartRecord {
 }
 
 export function buildCartsDatabase(input: { databaseUrl: string }): CartsDatabase & { disconnect: () => Promise<void> } {
-  const client = new PrismaClient({ datasourceUrl: input.databaseUrl });
+  const client = scopeToTenant({ client: new PrismaClient({ datasourceUrl: input.databaseUrl }), readTenant: readQueryTenant });
   return {
     insertCart: async (cart) => describeCart(await client.cart.create({ data: { tenantId: cart.tenantId }, include: LINES_IN_ORDER })),
     findCart: async (query) => {
