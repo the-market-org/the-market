@@ -2,6 +2,7 @@
 import { listInputProblems } from "@the-market/core";
 import type { CapabilityDefinition } from "@the-market/core";
 import { DEFAULT_SECTIONS } from "@the-market/theme-engine";
+import type { SectionDefinition } from "@the-market/theme-engine";
 import type { PageSection } from "./pages-types.ts";
 import { checkSectionPlace, checkSectionSettings, checkSectionShape, findPageProblem } from "./section-checks.ts";
 
@@ -13,11 +14,26 @@ interface PageServices {
   removePage: (input: PageKeys) => Promise<void>;
 }
 
-export const SET_SECTIONS_SCHEMA: Record<string, unknown> = Object.freeze({
-  type: "object",
-  required: ["pageKey", "sections"],
-  properties: { pageKey: { type: "string" }, sections: { type: "array" } },
-});
+/**
+ * The input schema, built from the theme's sections so an agent can see each section's type, settings and pages.
+ * The store's own input check reads only the top-level fields; the section checks below enforce the rest.
+ */
+export function buildSetSectionsSchema(definitions: readonly SectionDefinition[]): Record<string, unknown> {
+  const sectionShapes = definitions.map((definition) => ({
+    type: "object",
+    description: `Allowed on: ${definition.pageKeys.join(", ")}`,
+    required: ["sectionType", "settings"],
+    properties: { sectionType: { const: definition.sectionType }, settings: definition.settingsSchema },
+  }));
+  const pageKeys = [...new Set(definitions.flatMap((definition) => definition.pageKeys))];
+  return {
+    type: "object",
+    required: ["pageKey", "sections"],
+    properties: { pageKey: { type: "string", enum: pageKeys }, sections: { type: "array", items: { anyOf: sectionShapes } } },
+  };
+}
+
+export const SET_SECTIONS_SCHEMA: Record<string, unknown> = Object.freeze(buildSetSectionsSchema(DEFAULT_SECTIONS));
 
 export function buildSetSectionsCapability(input: PageServices): CapabilityDefinition {
   const capabilityName = "pages.page.set-sections";
