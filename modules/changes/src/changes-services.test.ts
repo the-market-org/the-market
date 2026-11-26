@@ -38,6 +38,8 @@ function buildFakeDatabase(): ChangesDatabase {
       return record;
     },
     findChangeSet: async (query) => findStored(query),
+    listChangeSets: async (query) =>
+      stored.filter((changeSet) => changeSet.tenantId === query.tenantId).slice(-query.limit).reverse().map((changeSet) => ({ changeSetId: changeSet.changeSetId, title: changeSet.title, state: changeSet.state, proposedBy: changeSet.proposedBy, itemCount: changeSet.items.length })),
     insertChangeItem: async (item) => {
       const changeSet = findStored(item) as ChangeSetRecord;
       const record = { ...item, itemId: `item_${changeSet.items.length + 1}`, position: changeSet.items.length };

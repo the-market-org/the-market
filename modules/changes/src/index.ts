@@ -5,7 +5,7 @@ import { addChangeItem, buildChangesServices } from "./changes-services.ts";
 import { explainRefusedMove, moveChangeSet } from "./move-change-set.ts";
 import { buildChangesDatabase } from "./prisma-changes-database.ts";
 
-export type { ChangeItemRecord, ChangeSetRecord, ChangesDatabase } from "./changes-types.ts";
+export type { ChangeItemRecord, ChangeSetRecord, ChangeSetSummary, ChangesDatabase } from "./changes-types.ts";
 
 /**
  * Composition root of the changes module: connects the services to the
