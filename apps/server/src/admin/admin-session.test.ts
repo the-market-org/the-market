@@ -23,7 +23,7 @@ const registry = {
           ]
         : [],
   },
-  connections: { saveConnection: async () => ({ signingSecret: "" }), findConnection: async () => undefined, removeConnection: async () => {} },
+  connections: { saveConnection: async () => ({ signingSecret: "" }), findConnection: async () => undefined, removeConnection: async () => {}, listMessages: async () => [], sendMessage: async () => ({}) },
 };
 
 async function buildBrowser() {
