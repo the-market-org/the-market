@@ -18,6 +18,7 @@
 - The other eight modules follow in later pull requests, one or two at a time, each with its own policy migration.
 
 **Artifacts:**
+- [E] CI on #149 failed on the `secret-box` test from #144, not on this change: its "changed value" replaced the last two characters and sometimes produced the same string. Fix: flip a byte of the decoded ciphertext and assert the value changed. It passed 30 runs out of 30 — invalidates never [medium] [2026-11-26]
 - [D] Row-level security goes module by module through `scopeToTenant`, so a module is protected once its adapter is wrapped and its migration applied, and the others keep working meanwhile — invalidates never [high] [2026-11-26]
 - [I] Policies only bite when a module connects as its `market_<schema>` role (from `.env.module-roles`). Their test must sign in as that role, not as `postgres` — invalidates never [high] [2026-11-26]
 
