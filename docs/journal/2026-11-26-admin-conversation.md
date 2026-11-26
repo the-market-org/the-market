@@ -8,7 +8,7 @@
 - `_context.md` is unchanged: nothing this turn was critical or volatile.
 
 **Artifacts:**
-- [I] Task 5 adds a `merchant_messages` table to the connections module. Its migration runs as the owner, and the connections role from #148 needs its grants rerun afterwards (`scripts/create-module-roles.ts` updates the role and its grants) — invalidates when default privileges cover new tables [medium] [2026-11-26]
+- [I] Task 5 adds a `merchant_messages` table to the connections module. #148's role script set default privileges for tables the owner creates in that schema, so `market_connections` should get access without a rerun. Check it as that role after the migration — invalidates once checked [medium] [2026-11-26]
 
 **Next steps:**
 - Task 5:
