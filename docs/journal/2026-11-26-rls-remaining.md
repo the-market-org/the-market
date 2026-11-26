@@ -16,7 +16,7 @@
   - A purchase paid order 25 (£18.00).
   - The store creation check passed: a change set was applied, and 3 signed events arrived.
   - The first try failed with a 500 whose reference led to "Can't reach database server", a passing outage, not the code.
-- `pnpm test`: 295 pass.- `_context.md` is unchanged: nothing this turn was critical or volatile.
+- `pnpm test`: 294 pass.- `_context.md` is unchanged: nothing this turn was critical or volatile.
 
 **Artifacts:**
 - [D] A module whose writes need their own interactive transaction uses `runAsTenant` instead of `scopeToTenant` — invalidates when Prisma lets a query extension join an open interactive transaction [high] [2026-11-26]
