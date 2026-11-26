@@ -2,9 +2,11 @@
 import { resolveService } from "@the-market/core";
 import type { HttpReply, ModuleRegistry } from "@the-market/core";
 import { escapeHtml } from "@the-market/theme-engine";
+import { describeError } from "../change-sets/item-steps.ts";
 import { readCookie } from "../storefront/cart-pages.ts";
 import type { Route, RouteRequest } from "../hono-adapter.ts";
 import { composeAdminChangeSetRoutes } from "./admin-change-set.ts";
+import { describeListener, renderConversation } from "./admin-conversation.ts";
 import { composeAdminExperimentsAppsRoutes } from "./admin-experiments-apps.ts";
 import type { CapabilityRegistry } from "@the-market/core";
 import { buildSessionCookie, guardAdminRoutes, isOwnOrigin, readSessionSeconds, SESSION_COOKIE, sessionSecondsFor } from "./admin-session.ts";
@@ -52,16 +54,25 @@ export function composeAdminRoutes(input: { registry: ModuleRegistry; capabiliti
       ? replyPage({ status: 303, html: "", headers: { location: "/admin", "set-cookie": cookie() } })
       : replyPage({ status: 401, html: renderAdminPage({ title: "Sign in", mainHtml: `<p>That token is not accepted for this store.</p>${SIGN_IN_FORM}`, signedIn: false }) });
   };
+  const call = (moduleName: string, serviceName: string) => async (request: unknown) => (resolveService({ registry: input.registry, moduleName, serviceName }) as (request: unknown) => Promise<any>)(request);
+  const showHome = async (request: RouteRequest, status: number, notice: string) => {
+    const tenant = { tenantId: request.tenantId };
+    const [storeName, changeSets, messages, connection] = await Promise.all([findStoreName(request.tenantId), call("changes", "listChangeSets")({ ...tenant, limit: 50 }), call("connections", "listMessages")({ ...tenant, limit: 20 }), call("connections", "findConnection")(tenant)]);
+    const mainHtml = renderHomeMain({ storeName, changeSets, renderRow: renderChangeSetRow }) + renderConversation({ messages, connection, notice, describe: describeListener });
+    return replyPage({ status, html: renderAdminPage({ title: "Store admin", mainHtml, signedIn: true }) });
+  };
   const signedInRoutes = guardAdminRoutes({
     allowLocalHttp: input.allowLocalHttp,
     readToken,
     matches: input.matches,
     routes: [
-      route("GET", "/admin", async (request) => {
-        const listChangeSets = resolveService({ registry: input.registry, moduleName: "changes", serviceName: "listChangeSets" }) as (request: { tenantId: string; limit: number }) => Promise<Summary[]>;
-        const [storeName, changeSets] = await Promise.all([findStoreName(request.tenantId), listChangeSets({ tenantId: request.tenantId, limit: 50 })]);
-        return replyPage({ status: 200, html: renderAdminPage({ title: "Store admin", mainHtml: renderHomeMain({ storeName, changeSets, renderRow: renderChangeSetRow }), signedIn: true }) });
-      }),
+      route("GET", "/admin", (request) => showHome(request, 200, "")),
+      route("POST", "/admin/messages", async (request) =>
+        call("connections", "sendMessage")({ tenantId: request.tenantId, text: String(new URLSearchParams(request.bodyText).get("text") ?? "") }).then(
+          () => replyPage({ status: 303, html: "", headers: { location: "/admin" } }),
+          (error: unknown) => showHome(request, 400, describeError(error)),
+        ),
+      ),
       ...composeAdminChangeSetRoutes({ registry: input.registry, capabilities: input.capabilities, renderPage: renderAdminPage }),
       ...composeAdminExperimentsAppsRoutes({ registry: input.registry, capabilities: input.capabilities, readNow: input.readNow, renderPage: renderAdminPage }),
       route("POST", "/admin/sign-out", async () => replyPage({ status: 303, html: "", headers: { location: "/admin/sign-in", "set-cookie": buildSessionCookie({ token: "", maxAgeSeconds: 0, secure }) } })),
