@@ -4,6 +4,8 @@ import type { HttpReply, ModuleRegistry } from "@the-market/core";
 import { escapeHtml } from "@the-market/theme-engine";
 import { readCookie } from "../storefront/cart-pages.ts";
 import type { Route, RouteRequest } from "../hono-adapter.ts";
+import { composeAdminChangeSetRoutes } from "./admin-change-set.ts";
+import type { CapabilityRegistry } from "@the-market/core";
 import { buildSessionCookie, guardAdminRoutes, isOwnOrigin, readSessionSeconds, SESSION_COOKIE, sessionSecondsFor } from "./admin-session.ts";
 
 type Matches = (request: { authorization: string; tenantId: string }) => Promise<boolean>;
@@ -35,7 +37,7 @@ function replyPage(input: { status: number; html: string; headers?: Record<strin
 
 const SIGN_IN_FORM = '<h1>Sign in</h1><form method="post" action="/admin/sign-in"><label>Merchant token <input type="password" name="token" autocomplete="off" required></label><button>Sign in</button></form>';
 
-export function composeAdminRoutes(input: { registry: ModuleRegistry; matches: Matches; allowLocalHttp: boolean; readNow: () => number }): Route[] {
+export function composeAdminRoutes(input: { registry: ModuleRegistry; capabilities: CapabilityRegistry; matches: Matches; allowLocalHttp: boolean; readNow: () => number }): Route[] {
   const secure = !input.allowLocalHttp;
   const findStoreName = async (tenantId: string) => String(((await (resolveService({ registry: input.registry, moduleName: "tenancy", serviceName: "findTenant" }) as (request: { tenantId: string }) => Promise<{ name?: string } | undefined>)({ tenantId })) ?? {}).name ?? "");
   const readToken = (request: RouteRequest) => readCookie({ cookieHeader: String(request.headerValues.cookie ?? ""), cookieName: SESSION_COOKIE });
@@ -59,6 +61,7 @@ export function composeAdminRoutes(input: { registry: ModuleRegistry; matches: M
         const [storeName, changeSets] = await Promise.all([findStoreName(request.tenantId), listChangeSets({ tenantId: request.tenantId, limit: 50 })]);
         return replyPage({ status: 200, html: renderAdminPage({ title: "Store admin", mainHtml: renderHomeMain({ storeName, changeSets, renderRow: renderChangeSetRow }), signedIn: true }) });
       }),
+      ...composeAdminChangeSetRoutes({ registry: input.registry, capabilities: input.capabilities, renderPage: renderAdminPage }),
       route("POST", "/admin/sign-out", async () => replyPage({ status: 303, html: "", headers: { location: "/admin/sign-in", "set-cookie": buildSessionCookie({ token: "", maxAgeSeconds: 0, secure }) } })),
     ],
   });
