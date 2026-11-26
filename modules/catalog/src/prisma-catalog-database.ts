@@ -4,6 +4,7 @@
  * It is also the only place that turns a tenant id into a query filter.
  */
 import type { CatalogDatabase, ProductSummary } from "./catalog-services.ts";
+import { readQueryTenant, scopeToTenant } from "@the-market/core";
 import { PrismaClient } from "./generated/client/index.js";
 
 interface ProductRecord {
@@ -38,7 +39,7 @@ export function buildCatalogDatabase(input: {
   databaseUrl: string;
   summarise: (record: ProductRecord) => ProductSummary;
 }): CatalogDatabase & { disconnect: () => Promise<void> } {
-  const client = new PrismaClient({ datasourceUrl: input.databaseUrl });
+  const client = scopeToTenant({ client: new PrismaClient({ datasourceUrl: input.databaseUrl }), readTenant: readQueryTenant });
   return {
     findProducts: async (query) => {
       const records = await client.product.findMany({
