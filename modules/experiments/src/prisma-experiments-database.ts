@@ -3,6 +3,7 @@
  * ExperimentsDatabase port and is the only place that turns a tenant id into a query filter.
  */
 import type { ArmCounts, ExperimentRecord, ExperimentsDatabase } from "./experiments-types.ts";
+import { readQueryTenant, runAsTenant, scopeToTenant } from "@the-market/core";
 import { PrismaClient } from "./generated/client/index.js";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -20,7 +21,7 @@ export function foldArmCounts(rows: Array<{ arm: string; visitors: number; conve
 }
 
 export function buildExperimentsDatabase(input: { databaseUrl: string }): ExperimentsDatabase & { disconnect: () => Promise<void> } {
-  const client = new PrismaClient({ datasourceUrl: input.databaseUrl });
+  const client = scopeToTenant({ client: new PrismaClient({ datasourceUrl: input.databaseUrl }), readTenant: readQueryTenant });
   const keysOf = (keys: { tenantId: string; experimentId: string }) => ({ tenantId: keys.tenantId, experimentId: keys.experimentId });
   return {
     insertEvent: async (event) => {
@@ -46,7 +47,7 @@ export function buildExperimentsDatabase(input: { databaseUrl: string }): Experi
     },
     countMetric: async (query) =>
       foldArmCounts(
-        await client.$queryRaw<Array<{ arm: string; visitors: number; conversions: number }>>`
+        await runAsTenant<{ $queryRaw: typeof client.$queryRaw }, Array<{ arm: string; visitors: number; conversions: number }>>({ client, tenantId: query.tenantId, work: (transaction) => transaction.$queryRaw`
           SELECT x.arm, COUNT(*)::int AS visitors,
                  COUNT(*) FILTER (WHERE EXISTS (
                    SELECT 1 FROM telemetry_events e
@@ -54,7 +55,7 @@ export function buildExperimentsDatabase(input: { databaseUrl: string }): Experi
                      AND e.event_name = ${query.eventName} AND e.occurred_at >= x.exposed_at))::int AS conversions
           FROM exposures x
           WHERE x.tenant_id = ${query.tenantId}::uuid AND x.experiment_id = ${query.experimentId}::uuid
-          GROUP BY x.arm`,
+          GROUP BY x.arm` }),
       ),
     disconnect: () => client.$disconnect(),
   };

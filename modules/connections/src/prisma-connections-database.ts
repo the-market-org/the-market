@@ -3,6 +3,7 @@
  * ConnectionsDatabase port and is the only place that turns a tenant id into a query filter.
  */
 import type { ConnectionsDatabase } from "./connections-types.ts";
+import { readQueryTenant, scopeToTenant } from "@the-market/core";
 import { PrismaClient } from "./generated/client/index.js";
 
 /** The same port, with signing secrets sealed on the way in and read back on the way out. */
@@ -18,7 +19,7 @@ export function buildSealedDatabase<Database extends ConnectionsDatabase>(input:
 }
 
 export function buildConnectionsDatabase(input: { databaseUrl: string }): ConnectionsDatabase & { disconnect: () => Promise<void> } {
-  const client = new PrismaClient({ datasourceUrl: input.databaseUrl });
+  const client = scopeToTenant({ client: new PrismaClient({ datasourceUrl: input.databaseUrl }), readTenant: readQueryTenant });
   return {
     saveConnection: async (connection) => {
       const target = { eventsUrl: connection.eventsUrl, eventNames: connection.eventNames, signingSecret: connection.signingSecret };

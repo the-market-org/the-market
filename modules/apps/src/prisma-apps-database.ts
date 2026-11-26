@@ -3,6 +3,7 @@
  * AppsDatabase port and is the only place that turns a tenant id into a query filter.
  */
 import type { AppRecord, AppsDatabase } from "./apps-types.ts";
+import { readQueryTenant, scopeToTenant } from "@the-market/core";
 import { PrismaClient } from "./generated/client/index.js";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -13,7 +14,7 @@ export function describeApp(stored: AppRecord & { installedAt: Date }): AppRecor
 }
 
 export function buildAppsDatabase(input: { databaseUrl: string }): AppsDatabase & { disconnect: () => Promise<void> } {
-  const client = new PrismaClient({ datasourceUrl: input.databaseUrl });
+  const client = scopeToTenant({ client: new PrismaClient({ datasourceUrl: input.databaseUrl }), readTenant: readQueryTenant });
   const bindingKey = (keys: { tenantId: string; appId: string; slotName: string }) => ({ tenantId_slotName_appId: { tenantId: keys.tenantId, slotName: keys.slotName, appId: keys.appId } });
   return {
     insertApp: async (app) => describeApp(await client.app.create({ data: app })),
