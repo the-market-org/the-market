@@ -63,6 +63,10 @@ export function buildChangesDatabase(input: { databaseUrl: string }): ChangesDat
   return {
     insertChangeSet: async (changeSet) =>
       describeChangeSet(await client.changeSet.create({ data: changeSet, include: ITEMS_IN_ORDER })),
+    listChangeSets: async (query) => {
+      const stored = await client.changeSet.findMany({ where: { tenantId: query.tenantId }, orderBy: { createdAt: "desc" }, take: query.limit, include: { _count: { select: { items: true } } } });
+      return stored.map((set) => ({ changeSetId: set.changeSetId, title: set.title, state: set.state, proposedBy: set.proposedBy, itemCount: set._count.items }));
+    },
     findChangeSet: async (query) => {
       const records = isWellFormedId(query.changeSetId)
         ? await client.changeSet.findMany({

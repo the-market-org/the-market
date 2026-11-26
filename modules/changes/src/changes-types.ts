@@ -21,7 +21,18 @@ export interface ChangeSetRecord {
 }
 
 /** What the services need from storage. The Prisma adapter implements it. */
+/** A change set as a list shows it: no items, just how many. */
+export interface ChangeSetSummary {
+  changeSetId: string;
+  title: string;
+  state: string;
+  proposedBy: string;
+  itemCount: number;
+}
+
 export interface ChangesDatabase {
+  /** The store's change sets, newest first, at most `limit`. */
+  listChangeSets: (input: { tenantId: string; limit: number }) => Promise<ChangeSetSummary[]>;
   insertChangeSet: (input: { tenantId: string; title: string; proposedBy: string }) => Promise<ChangeSetRecord>;
   /** Items are ordered by position. Returns undefined for another tenant's change set. */
   findChangeSet: (input: { tenantId: string; changeSetId: string }) => Promise<ChangeSetRecord | undefined>;

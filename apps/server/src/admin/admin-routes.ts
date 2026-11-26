@@ -7,6 +7,21 @@ import type { Route, RouteRequest } from "../hono-adapter.ts";
 import { buildSessionCookie, guardAdminRoutes, isOwnOrigin, readSessionSeconds, SESSION_COOKIE, sessionSecondsFor } from "./admin-session.ts";
 
 type Matches = (request: { authorization: string; tenantId: string }) => Promise<boolean>;
+type Summary = { changeSetId: string; title: string; state: string; proposedBy: string; itemCount: number };
+
+/** One change set in a list: its title linking to its page, who proposed it, how many items, its state. */
+export function renderChangeSetRow(summary: Summary): string {
+  const items = summary.itemCount === 1 ? "1 item" : `${summary.itemCount} items`;
+  return `<li><a href="/admin/change-sets/${encodeURIComponent(summary.changeSetId)}">${escapeHtml(summary.title)}</a> <span>${escapeHtml(summary.proposedBy)} · ${items} · ${escapeHtml(summary.state)}</span></li>`;
+}
+
+/** The home page: the store's name, what waits for approval, the rest of the recent change sets. */
+export function renderHomeMain(input: { storeName: string; changeSets: Summary[]; renderRow: typeof renderChangeSetRow }): string {
+  const waiting = input.changeSets.filter((summary) => summary.state === "draft");
+  const others = input.changeSets.filter((summary) => summary.state !== "draft").slice(0, 10);
+  const list = (summaries: Summary[], empty: string) => (summaries.length === 0 ? `<p>${empty}</p>` : `<ul>${summaries.map(input.renderRow).join("")}</ul>`);
+  return `<h1>${escapeHtml(input.storeName)}</h1><h2>Waiting for approval (${waiting.length})</h2>${list(waiting, "Nothing is waiting.")}<h2>Recent</h2>${list(others, "No other change sets yet.")}`;
+}
 
 /** A whole admin page with a title, its main content, and the sign-out form. */
 export function renderAdminPage(input: { title: string; mainHtml: string; signedIn: boolean }): string {
@@ -39,7 +54,11 @@ export function composeAdminRoutes(input: { registry: ModuleRegistry; matches: M
     readToken,
     matches: input.matches,
     routes: [
-      route("GET", "/admin", async (request) => replyPage({ status: 200, html: renderAdminPage({ title: "Store admin", mainHtml: `<h1>${escapeHtml(await findStoreName(request.tenantId))}</h1>`, signedIn: true }) })),
+      route("GET", "/admin", async (request) => {
+        const listChangeSets = resolveService({ registry: input.registry, moduleName: "changes", serviceName: "listChangeSets" }) as (request: { tenantId: string; limit: number }) => Promise<Summary[]>;
+        const [storeName, changeSets] = await Promise.all([findStoreName(request.tenantId), listChangeSets({ tenantId: request.tenantId, limit: 50 })]);
+        return replyPage({ status: 200, html: renderAdminPage({ title: "Store admin", mainHtml: renderHomeMain({ storeName, changeSets, renderRow: renderChangeSetRow }), signedIn: true }) });
+      }),
       route("POST", "/admin/sign-out", async () => replyPage({ status: 303, html: "", headers: { location: "/admin/sign-in", "set-cookie": buildSessionCookie({ token: "", maxAgeSeconds: 0, secure }) } })),
     ],
   });

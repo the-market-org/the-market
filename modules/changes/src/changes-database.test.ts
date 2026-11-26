@@ -28,6 +28,10 @@ test("change sets are stored per tenant, items in order, and states move only fr
     const found = await database.findChangeSet(keys);
     assert.deepEqual(found?.items.map((item) => [item.position, item.change]), [[0, { title: "One" }], [1, { title: "Two" }]]);
     assert.equal(await database.findChangeSet({ tenantId: tenantB, changeSetId: changeSet.changeSetId }), undefined);
+    const newer = await database.insertChangeSet({ tenantId: tenantA, title: "Newer", proposedBy: "agent" });
+    assert.deepEqual((await database.listChangeSets({ tenantId: tenantA, limit: 10 })).map((set) => set.changeSetId), [newer.changeSetId, changeSet.changeSetId]);
+    assert.deepEqual((await database.listChangeSets({ tenantId: tenantA, limit: 1 })).map((set) => set.title), ["Newer"]);
+    assert.deepEqual(await database.listChangeSets({ tenantId: tenantB, limit: 10 }), []);
     assert.equal(await database.findChangeSet({ tenantId: tenantA, changeSetId: "undefined" }), undefined);
     assert.equal(await database.updateState({ tenantId: tenantA, changeSetId: "undefined", fromState: "draft", toState: "approved", approvedBy: "", failureReason: "" }), 0);
 
