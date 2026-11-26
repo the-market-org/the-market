@@ -9,7 +9,7 @@
 - The loop's one-shot wakeup (`dcc0d600`, 11:09) starts task 4 here.
 
 **Artifacts:**
-- [E] A log entry named the tool, and the attribution check (`grep -icE "claude|anthropic|co-authored"`) caught it only on the second commit. Fix: run the check on the staged diff before every commit, and describe actors as "the agent" or "the owner" — invalidates never [high] [2026-11-26]
+- [E] A log entry named the tool, and the attribution check (a case-insensitive search of the diff for AI tool and vendor names) caught it only on the second commit. Fix: run the check on the staged diff before every commit, and describe actors as "the agent" or "the owner" — invalidates never [high] [2026-11-26]
 - [S] If the owner wants #150's history clean too: squash-merge it, or allow the force-push so the branch can be rewritten — activates when the owner chooses [medium] [2026-11-26]
 
 **Next steps:**
