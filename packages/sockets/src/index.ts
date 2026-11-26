@@ -15,3 +15,4 @@ export { buildOutboxMail } from "./outbox-mail.ts";
 export type { SentMail } from "./outbox-mail.ts";
 export { buildOwnerAuthoriser } from "./owner-authoriser.ts";
 export { buildTokenIdentity, signSegments } from "./token-identity.ts";
+export { buildKeySetIdentity } from "./key-set-identity.ts";
