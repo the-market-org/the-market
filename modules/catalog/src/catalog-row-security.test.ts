@@ -16,6 +16,8 @@ test("the tenant id a query names is read from where or data, and nothing else c
   assert.equal(readQueryTenant({ where: { tenantId: "tenant-a" } }), "tenant-a");
   assert.equal(readQueryTenant({ data: { tenantId: "tenant-b" } }), "tenant-b");
   assert.equal(readQueryTenant({ where: {} }), "");
+  assert.equal(readQueryTenant({ where: { tenantId_pageKey: { tenantId: "tenant-c", pageKey: "home" } } }), "tenant-c");
+  assert.equal(readQueryTenant({ where: { cartId_productId: { cartId: "c", productId: "p" } }, create: { tenantId: "tenant-d" } } as never), "tenant-d");
   assert.equal(readQueryTenant(undefined), "");
 });
 
