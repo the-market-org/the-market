@@ -10,6 +10,11 @@
 **Artifacts:**
 - [I] Task 5 adds a `merchant_messages` table to the connections module. #148's role script set default privileges for tables the owner creates in that schema, so `market_connections` should get access without a rerun. Check it as that role after the migration — invalidates once checked [medium] [2026-11-26]
 
+**Since this entry was first written:**
+- Task 5a, the messages in the connections module, went up as #153 from `main` (CI passes). It also delivers `orders.order.paid`, which was missing.
+- `market_connections` reads the new table with no rerun of the role script, so the note above is confirmed.
+- The loop's one-shot wakeup (`c7cbb843`, 11:26, `/loop keep going`) builds task 5b on this branch.
+
 **Next steps:**
 - Task 5:
   - The `merchant_messages` table and services.
