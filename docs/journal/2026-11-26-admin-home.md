@@ -14,5 +14,10 @@
 **Artifacts:**
 - [I] The app's `postgres` user has `rolcreaterole` true (checked in `pg_roles`), so the owner needs no new database user for work package 15 task 8 — invalidates when the app's database user changes [high] [2026-11-26]
 
+**Closing state:**
+- #147 is open and CI passes.
+- The owner was asked whether the per-module role script may be run on the development database, or should only be built for the owner to run.
+- The loop's one-shot wakeup (`4170ac45`, 08:37) continues with task 3.
+
 **Next steps:**
 - Task 3: the change set page, with a preview and approve, reject, apply and revert.
