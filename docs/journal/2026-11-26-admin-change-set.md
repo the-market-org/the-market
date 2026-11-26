@@ -17,13 +17,12 @@
   4. Revert (303) followed, and the storefront no longer showed it.
 
 **Artifacts:**
-- [S] The owner's answer on the per-module role script decides who runs it: Claude on the development database, or the owner — activates when the owner answers [high] [2026-11-26]
+- [D] The owner approved running the per-module role script on the development database, and it ran (#148) — invalidates never [medium] [2026-11-26]
 
 **Since this entry was first written:**
 - #148 was opened: per-module roles. They were created on the development database with the owner's approval.
 - #149 was opened: catalog row-level security, plus the fix for the flaky `secret-box` test. CI passes on both.
 - `_context.md` gained the critical row for per-module roles, on #148.
-- The loop's one-shot wakeup (`a8639379`, 10:58, `/loop keep going`) resumes task 3 on this branch, now up to date with `main`.
 
 **Next steps:**
 - Task 4: the experiments and apps pages.
