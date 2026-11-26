@@ -3,6 +3,7 @@
  * ChangesDatabase port and is the only place that turns a tenant id into a query filter.
  */
 import type { ChangeItemRecord, ChangeSetRecord, ChangesDatabase } from "./changes-types.ts";
+import { runAsTenant } from "@the-market/core";
 import { PrismaClient } from "./generated/client/index.js";
 import type { Prisma } from "./generated/client/index.js";
 
@@ -60,24 +61,27 @@ export function buildChangesDatabase(input: { databaseUrl: string }): ChangesDat
   disconnect: () => Promise<void>;
 } {
   const client = new PrismaClient({ datasourceUrl: input.databaseUrl });
+  const asTenant = <Result>(tenantId: string, work: (transaction: Prisma.TransactionClient) => Promise<Result>) => runAsTenant({ client, tenantId, work });
   return {
     insertChangeSet: async (changeSet) =>
-      describeChangeSet(await client.changeSet.create({ data: changeSet, include: ITEMS_IN_ORDER })),
+      describeChangeSet(await asTenant(changeSet.tenantId, (transaction) => transaction.changeSet.create({ data: changeSet, include: ITEMS_IN_ORDER }))),
     listChangeSets: async (query) => {
-      const stored = await client.changeSet.findMany({ where: { tenantId: query.tenantId }, orderBy: { createdAt: "desc" }, take: query.limit, include: { _count: { select: { items: true } } } });
+      const stored = await asTenant(query.tenantId, (transaction) => transaction.changeSet.findMany({ where: { tenantId: query.tenantId }, orderBy: { createdAt: "desc" }, take: query.limit, include: { _count: { select: { items: true } } } }));
       return stored.map((set) => ({ changeSetId: set.changeSetId, title: set.title, state: set.state, proposedBy: set.proposedBy, itemCount: set._count.items }));
     },
     findChangeSet: async (query) => {
       const records = isWellFormedId(query.changeSetId)
-        ? await client.changeSet.findMany({
-            where: { tenantId: query.tenantId, changeSetId: query.changeSetId },
-            include: ITEMS_IN_ORDER,
-          })
+        ? await asTenant(query.tenantId, (transaction) =>
+            transaction.changeSet.findMany({
+              where: { tenantId: query.tenantId, changeSetId: query.changeSetId },
+              include: ITEMS_IN_ORDER,
+            }),
+          )
         : [];
       return records.map(describeChangeSet)[0];
     },
     insertChangeItem: (item) =>
-      client.$transaction(async (transaction) => {
+      asTenant(item.tenantId, async (transaction) => {
         const position = await transaction.changeItem.count({
           where: { tenantId: item.tenantId, changeSetId: item.changeSetId },
         });
@@ -92,10 +96,12 @@ export function buildChangesDatabase(input: { databaseUrl: string }): ChangesDat
       }),
     updateState: async (move) => {
       const result = isWellFormedId(move.changeSetId)
-        ? await client.changeSet.updateMany({
-            where: { tenantId: move.tenantId, changeSetId: move.changeSetId, state: move.fromState },
-            data: buildStateData(move),
-          })
+        ? await asTenant(move.tenantId, (transaction) =>
+            transaction.changeSet.updateMany({
+              where: { tenantId: move.tenantId, changeSetId: move.changeSetId, state: move.fromState },
+              data: buildStateData(move),
+            }),
+          )
         : { count: 0 };
       return result.count;
     },

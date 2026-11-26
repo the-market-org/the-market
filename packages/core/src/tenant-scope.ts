@@ -39,3 +39,18 @@ export function scopeToTenant<Client>(input: { client: Client; readTenant: typeo
     },
   }) as unknown as Client;
 }
+
+type TransactionRunner = { $transaction: (work: (transaction: { $executeRaw: ScopableClient["$executeRaw"] }) => Promise<unknown>) => Promise<unknown> };
+
+/**
+ * Runs work in one interactive transaction that first sets `app.tenant_id` (local to the transaction). For
+ * modules whose writes need their own transaction (a counter read then an insert), where `scopeToTenant`'s
+ * per-query transaction cannot nest.
+ */
+export function runAsTenant<Transaction, Result>(input: { client: unknown; tenantId: string; work: (transaction: Transaction) => Promise<Result> }): Promise<Result> {
+  const client = input.client as TransactionRunner;
+  return client.$transaction(async (transaction) => {
+    await transaction.$executeRaw`SELECT set_config('app.tenant_id', ${input.tenantId}, true)`;
+    return input.work(transaction as unknown as Transaction);
+  }) as Promise<Result>;
+}
