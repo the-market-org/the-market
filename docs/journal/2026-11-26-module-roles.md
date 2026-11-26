@@ -25,6 +25,11 @@
 - [D] At run time each module connects as its own role without `BYPASSRLS`, while migrations run as the owner. A module that reaches into another's schema now fails with `permission denied` — invalidates never [critical] [2026-11-26]
 - [S] Row-level security (task 7) can now be tested as the module roles. The next step is policies, with `app.tenant_id` set per transaction — activates now [high] [2026-11-26]
 
+**Closing state:**
+- #148 is open and CI passes.
+- `_context.md` gained the critical row for per-module roles in the same commit.
+- The loop's one-shot wakeup (`ea2d0a86`, 08:45) goes on to task 7.
+
 **Next steps:**
 - Task 7: row-level security policies, tested as `market_<schema>`.
 - Work package 14 task 3: the change set page.
