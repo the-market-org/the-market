@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { localEndpoint, readAgentArguments } from "./agent-arguments.ts";
+import { applyHostName, localEndpoint, readAgentArguments } from "./agent-arguments.ts";
 
 test("the store, host and wait are read from the arguments, the token from the environment", () => {
   assert.deepEqual(readAgentArguments({ argv: ["--store", "http://localhost:3000", "--host", "localhost", "--wait", "30"], environment: { AGENT_TOKEN: "token" } }), {
@@ -23,4 +23,9 @@ test("missing token or store stops with a message saying what to set", () => {
 
 test("the card's A2A path is used on the store's own address, so local runs work", () => {
   assert.equal(localEndpoint({ interfaceUrl: "https://localhost/a2a", storeUrl: "http://localhost:3000" }), "http://localhost:3000/a2a");
+});
+
+test("--host becomes the address's host name, keeping the scheme and port", () => {
+  assert.equal(applyHostName({ storeUrl: "http://localhost:3944", hostName: "shop-s.localhost" }), "http://shop-s.localhost:3944");
+  assert.equal(applyHostName({ storeUrl: "http://localhost:3944", hostName: "" }), "http://localhost:3944");
 });
