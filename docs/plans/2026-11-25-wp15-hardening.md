@@ -116,6 +116,8 @@ Tests:
 
 ### Task 7: Row-level security
 
+**Order changed on 2026-11-26:** the development database user `postgres` has `BYPASSRLS` and owns every table (checked with `pg_roles` and `pg_tables`), so policies have no effect until the app connects as a role without it. Task 8 runs first, and this task follows on its roles.
+
 Each module's Prisma client is wrapped by a client extension. The extension runs every query in a transaction that first runs `SELECT set_config('app.tenant_id', $1, true)` with the call's tenant id.
 
 Each table gets `ALTER TABLE … ENABLE ROW LEVEL SECURITY` and a policy `USING (tenant_id = current_setting('app.tenant_id')::uuid)`, in one migration per module. Platform routes (work package 12) that create stores run as the tenancy module's own role, through a policy for inserts only.
