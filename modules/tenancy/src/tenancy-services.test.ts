@@ -94,3 +94,23 @@ test("a publisher creates a store with a free host and slug, and is refused a ta
   await assert.rejects(services.createStore({ slug: "shop-d", name: "Other", primaryHost: "other.example" }), { message: "Slug is already used" });
   await assert.rejects(services.createStore({ slug: "Shop D", name: "Other", primaryHost: "x.example" }), { message: "Invalid input: slug must be 3 to 40 lower-case letters, digits or hyphens" });
 });
+
+test("creating a store looks up the host, then the slug, never both at once", async () => {
+  const steps: string[] = [];
+  const database = buildFakeDatabase([]);
+  const recorded: TenancyDatabase = {
+    ...database,
+    findTenantByHost: async (input) => {
+      steps.push("host starts");
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      steps.push("host ends");
+      return database.findTenantByHost(input);
+    },
+    findTenantBySlug: async (input) => {
+      steps.push("slug starts");
+      return database.findTenantBySlug(input);
+    },
+  };
+  await createStore({ slug: "shop-h", name: "Shop H", primaryHost: "shop-h.localhost", database: recorded, normalise: normaliseHost });
+  assert.deepEqual(steps, ["host starts", "host ends", "slug starts"]);
+});

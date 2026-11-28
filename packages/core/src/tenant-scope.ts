@@ -40,7 +40,15 @@ export function scopeToTenant<Client>(input: { client: Client; readTenant: typeo
   }) as unknown as Client;
 }
 
-type TransactionRunner = { $transaction: (work: (transaction: { $executeRaw: ScopableClient["$executeRaw"] }) => Promise<unknown>) => Promise<unknown> };
+type TransactionRunner = {
+  $transaction: (work: (transaction: { $executeRaw: ScopableClient["$executeRaw"] }) => Promise<unknown>, options: typeof TRANSACTION_LIMITS) => Promise<unknown>;
+};
+
+/**
+ * Prisma's defaults are 2 seconds to start a transaction and 5 to finish it. A cold connection to a hosted
+ * pooler can take longer than 2 seconds just to start, which failed requests with P2028.
+ */
+export const TRANSACTION_LIMITS = Object.freeze({ maxWait: 10_000, timeout: 15_000 });
 
 /**
  * Runs work in one interactive transaction that first sets each named setting (local to the transaction). Tenancy
@@ -53,7 +61,7 @@ export function runWithSettings<Transaction, Result>(input: { client: unknown; s
       await transaction.$executeRaw`SELECT set_config(${name}, ${value}, true)`;
     }
     return input.work(transaction as unknown as Transaction);
-  }) as Promise<Result>;
+  }, TRANSACTION_LIMITS) as Promise<Result>;
 }
 
 /**

@@ -75,7 +75,9 @@ export async function createStore(input: {
 }): Promise<TenantRecord> {
   checkSlug(input.slug);
   const primaryHost = input.normalise(input.primaryHost);
-  const [hostOwner, slugOwner] = await Promise.all([input.database.findTenantByHost({ host: primaryHost }), input.database.findTenantBySlug({ slug: input.slug })]);
+  // One lookup at a time: two transactions at once can wait on each other for the same pooled connection.
+  const hostOwner = await input.database.findTenantByHost({ host: primaryHost });
+  const slugOwner = await input.database.findTenantBySlug({ slug: input.slug });
   checkFree({ hostOwner, slugOwner });
   return input.database.insertTenant({ slug: input.slug, name: input.name, primaryHost });
 }
