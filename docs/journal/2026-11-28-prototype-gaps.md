@@ -45,3 +45,26 @@
 - **Artifacts:**
   - [I] Hosting waits on three owner decisions: the hosting provider, the store domain, and where the registry lives — invalidates once they are decided [high] [2026-11-28]
 - **Next steps:** the owner decides those three, then a hosting plan with diagrams.
+
+## Later the same day: hosting on Vercel's free plan
+- **What happened:** the owner decided hosting will be Vercel's free (Hobby) plan for the time being. Vercel's documentation was checked on 2026-11-28: the function duration, Hobby plan, function limitations, Python runtime and DNS pages.
+- **Confirmed:**
+  - A request may run up to 300 seconds, which is the default and the maximum with fluid compute.
+  - 1,000,000 invocations, 4 CPU-hours and 360 GB-hours a month. Going over pauses the feature for 30 days.
+  - Up to 2 GB of memory, and 50 domains per project.
+  - Python ASGI apps run as functions.
+  - A wildcard domain's certificate needs Vercel's nameservers, or `_acme-challenge` delegated to Vercel.
+- **Not stated in the pages read:** commercial use on Hobby, whether a local file survives between requests, and whether a wildcard counts as one of the 50 domains.
+- **Consequences:**
+  - The agent service's `serve` becomes a per-request ASGI app. A build of about 40 seconds and building B from an event fit inside 300 seconds.
+  - The registry and the waiting experiments move to a `commerce_agent` schema in Supabase, because file persistence isn't documented.
+  - The tenant app and the publisher are Node projects.
+  - Migrations run from CI or by hand.
+- **Artifacts:**
+  - [D] Hosting is Vercel's free Hobby plan for the time being, one project per repository — invalidates if the owner moves to a paid plan or another host [critical] [2026-11-28]
+  - [D] The agent service's registry and waiting experiments live in Supabase, not local files, because Vercel functions run per request — invalidates if the agent service moves to a host with lasting disks [high] [2026-11-28]
+  - [I] Vercel's Hobby pages don't say whether commercial use is allowed. The owner checks Vercel's terms before real merchants sell — invalidates once checked [volatile] [2026-11-28]
+- **Next steps:**
+  - The owner chooses the store domain and checks Vercel's terms on commercial use.
+  - Supabase's connection mode for per-request code is checked in Supabase's docs.
+  - Then the hosting plan, with diagrams.
