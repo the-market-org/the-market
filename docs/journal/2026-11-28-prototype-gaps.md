@@ -14,3 +14,14 @@
 - **Next steps:**
   - The owner merges the 13 pull requests.
   - The owner decides on planning the four links. The open decisions on agent token renewal and the registry's production home come with them.
+
+## Later the same day: is it planned?
+- **What happened:** the owner asked whether the plan for the missing links was already written. Every plan on `main` in the three repositories was checked. None plans the four links as tasks.
+  - Merchant sign-in and the agent starting with the merchant appear only in the design.
+  - The publisher plan defers the sign-up page ("comes later").
+  - Nothing mentions hosting.
+- **Found:** the superseded 2026-11-15 roadmap's demo ends with "Co-pilot proposes a change from what it observed". The optimiser tests a hypothesis given by an operator, and doesn't yet derive one from the store's telemetry. The master plan's own goal, an outside agent building and optimising through typed, reversible capabilities, is met on the development database.
+- **Key changes:** none in code.
+- **Artifacts:**
+  - [I] "Prototype" can mean three things here: the master plan's goal (met locally), the old six-step demo (one step short, proposals from telemetry), or real clients without an operator (four links short). The owner chooses which to plan for — invalidates once the owner chooses [high] [2026-11-28]
+- **Next steps:** the owner chooses the meaning, then a plan for it, with diagrams.
