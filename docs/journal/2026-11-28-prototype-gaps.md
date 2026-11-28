@@ -25,3 +25,23 @@
 - **Artifacts:**
   - [I] "Prototype" can mean three things here: the master plan's goal (met locally), the old six-step demo (one step short, proposals from telemetry), or real clients without an operator (four links short). The owner chooses which to plan for — invalidates once the owner chooses [high] [2026-11-28]
 - **Next steps:** the owner chooses the meaning, then a plan for it, with diagrams.
+
+## Later the same day: what hosting involves
+- **What happened:** the owner asked what the hosting task is. No plan covers it, so the answer was built from how the three services run today.
+- **The services:**
+  - The tenant app: Node 22, on the Supabase database with a role per module.
+  - The publisher: Node 22, with no database of its own.
+  - The agent service: Python 3.13 `serve`, with its registry in a local SQLite file.
+- **Tasks found:**
+  1. A host for each service, with a lasting disk for the agent's registry, or the registry moved into Supabase.
+  2. A domain with an address and HTTPS for every store, because the store is chosen by host name.
+  3. Every `.env` value moved into the host's secrets, plus `SECRETS_KEY`, which production requires.
+  4. `NODE_ENV=production`, which refuses plain-HTTP event addresses and makes merchant cookies HTTPS-only.
+  5. The services' addresses wired to each other, with the publisher and agent service closed beyond their token routes.
+  6. Migrations run as the owner role on each release.
+  7. Restarts and health checks.
+  8. A deploy step on merge to `main`.
+- **Key changes:** none in code.
+- **Artifacts:**
+  - [I] Hosting waits on three owner decisions: the hosting provider, the store domain, and where the registry lives — invalidates once they are decided [high] [2026-11-28]
+- **Next steps:** the owner decides those three, then a hosting plan with diagrams.
